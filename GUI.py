@@ -249,6 +249,7 @@ class GUI(QMainWindow):
             self.numSteps = self.dataLength_2/self.dataLength_1
             self.trialData = []
             self.timeStepData = []
+	    superdooper
             for _file in self.files:
                 with open(self.dirPath+'/'+_file) as f:
                     data = f.readlines()
