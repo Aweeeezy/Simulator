@@ -239,7 +239,10 @@ class GUI(QMainWindow):
 	    for _file in self.files:
                 with open(self.dirPath+'/'+_file) as f:
                     data = f.readlines()
+<<<<<<< HEAD
 		    print "Length of",_file,"is",len(data)
+=======
+>>>>>>> 15ce9015fd4845611be49400ca5a53a992339241
 		    if len(data) != 0:
 			self.dataLengths.append(len(data))
 	    # These 3 *should* work; but, for reasons further down the
@@ -249,7 +252,10 @@ class GUI(QMainWindow):
             self.numSteps = self.dataLength_2/self.dataLength_1
             self.trialData = []
             self.timeStepData = []
+<<<<<<< HEAD
 	    superdooper
+=======
+>>>>>>> 15ce9015fd4845611be49400ca5a53a992339241
             for _file in self.files:
                 with open(self.dirPath+'/'+_file) as f:
                     data = f.readlines()
