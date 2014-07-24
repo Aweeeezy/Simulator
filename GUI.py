@@ -7,7 +7,6 @@ from PySide.QtCore import *
 from MplGrapher import MplGrapher
 from GraphParams import GraphParams
 
-# A simple git test
 # Simulator GUI class
 class GUI(QMainWindow):
     def __init__(self):
