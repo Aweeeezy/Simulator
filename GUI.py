@@ -34,8 +34,8 @@ class GUI(QMainWindow):
 	self.display_init()   # (3)
 
         # More initialization stuff
-	self.w.layout.addWidget(self.graphOptions,0,0)
 	self.w.layout.addWidget(self.simOptions,0,0)
+	self.w.layout.addWidget(self.graphOptions,0,0)
 	self.w.layout.addWidget(self.display,0,1,2,1)
 	self.w.setLayout(self.w.layout)
 
@@ -193,9 +193,15 @@ class GUI(QMainWindow):
 		self.runC()
 	    else:
 		cmd = ['/Users/aweeeezy/bin/ivry/Simulator/a.out']
-		cmd.append(self.dirPath+'/')
+		cmd.append(str(self.dirPath)+'/')
 		self.execArgs = [str(self.numCond.text()),str(self.numSim.text()),
 				str(self.numTrials.text()),str(self.numSteps.text())]
+		# If custom init params are to be used, append to execArgs
+		if "Checked" in str(self.checkBox.checkState()):
+		    self.execArgs.append(str(1))
+		    for field in self.paramsList:
+			self.execArgs.append(str(field.text()))
+		else: self.execArgs.append(str(0))
 		# Appends # of values & values from QComboBoxes in runFuncs{}
 		for box in self.selectedFuncsMap.itervalues():
 		    boxContent = [box.itemText(i) for i in range(box.count())]
@@ -285,6 +291,160 @@ class GUI(QMainWindow):
   ###	    layouts & support functions	     ###
 
     def options_init(self):
+	# Layout for simulator widgets (2.2)
+	self.simOptions = QStackedWidget()
+	self.loopParams = QWidget()
+	self.initParams = QWidget()
+
+	# Loop settings
+	self.loopSettings = QGridLayout()
+	loopTitle = QLabel("<font size=6>Simulator Loop Settings</font>")
+	self.paramsButton = QPushButton("Init Params")
+	self.paramsButton.pressed.connect(self.switchSettings)
+	numConditions = QLabel("Conditions:")
+	numSim = QLabel("Simulations:")
+	numTrials =  QLabel("Trials:")
+	numSteps =  QLabel("Steps:")
+	self.numCond = QLineEdit("1")
+	self.numCond.returnPressed.connect(self.genFuncBox)
+	self.numSim = QLineEdit("1")
+	self.numTrials = QLineEdit("300")
+	self.numSteps = QLineEdit("3000")
+	self.possibleFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
+	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
+	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
+	self.loopSettings.addWidget(loopTitle,0,0,1,2,Qt.AlignCenter)
+	self.loopSettings.addWidget(self.paramsButton,1,0,1,2,Qt.AlignCenter)
+	self.loopSettings.addWidget(numConditions,2,0)
+	self.loopSettings.addWidget(numSim,3,0)
+	self.loopSettings.addWidget(numTrials,4,0)
+	self.loopSettings.addWidget(numSteps,5,0)
+	self.loopSettings.addWidget(self.numCond,2,1,1,2)
+	self.loopSettings.addWidget(self.numSim,3,1,1,2)
+	self.loopSettings.addWidget(self.numTrials,4,1,1,2)
+	self.loopSettings.addWidget(self.numSteps,5,1,1,2)
+	self.loopParams.setLayout(self.loopSettings)
+
+	# Optional initialization parameters
+	self.initParamSettings = QGridLayout()
+	paramTitle = QLabel("<font size=6>Initialization Parameters</font>")
+	self.loopButton = QPushButton("Loop Settings")
+	self.loopButton.pressed.connect(self.switchSettings)
+	checkBox = QLabel("Use custom init params:")
+	self.checkBox = QCheckBox()
+	tau = QLabel("Tau:")
+	cue_onset = QLabel("Cue Onset:")
+	cue_duration = QLabel("Cue Duration:")
+	alpha_func_a = QLabel("Alpha Func A:")
+	alpha_func_b = QLabel("Alpha Func B:")
+	alpha_func_a_camkII = QLabel("Alpha Func A CamkII:")
+	alpha_func_b_camkII = QLabel("Alpha Func B CamkII:")
+	sensory_amp = QLabel("Sensory Amp:")
+	pf_amp = QLabel("PF Amp:")
+	pause_mod_amp = QLabel("Pause Mod Amp:")
+	pause_decay = QLabel("Pause Decay:")
+	w_tan_msn = QLabel("Tan-Msn Weight:")
+	w_msn_mot = QLabel("Msn-Mot Weight:")
+	w_pf_tan_init = QLabel("PF-Tan Weight:")
+	w_ctx_msn_init = QLabel("Ctx-Msn Weight:")
+	pr_alpha = QLabel("PR Alpha:")
+	response_threshold = QLabel("Response Threshold:")
+	AMPA_threshold = QLabel("AMPA Threshold:")
+	NMDA_threshold = QLabel("NMDA Theshold:")
+	DA_base = QLabel("DA Base:")
+	LTP_msn = QLabel("LTP Msn:")
+	LTD_msn = QLabel("LTD Msn:")
+	LTP_tan = QLabel("LTP Tan:")
+	LTD_tan = QLabel("LTD Tan:")
+	self.tau = QLineEdit()
+	self.cue_onset = QLineEdit()
+	self.cue_duration = QLineEdit()
+	self.alpha_func_a = QLineEdit()
+	self.alpha_func_b = QLineEdit()
+	self.alpha_func_a_camkII = QLineEdit()
+	self.alpha_func_b_camkII = QLineEdit()
+	self.sensory_amp = QLineEdit()
+	self.pf_amp = QLineEdit()
+	self.pause_mod_amp = QLineEdit()
+	self.pause_decay = QLineEdit()
+	self.w_tan_msn = QLineEdit()
+	self.w_msn_mot = QLineEdit()
+	self.w_pf_tan_init = QLineEdit()
+	self.w_ctx_msn_init = QLineEdit()
+	self.pr_alpha = QLineEdit()
+	self.response_threshold = QLineEdit()
+	self.AMPA_threshold = QLineEdit()
+	self.NMDA_threshold = QLineEdit()
+	self.DA_base = QLineEdit()
+	self.LTP_msn = QLineEdit()
+	self.LTD_msn = QLineEdit()
+	self.LTP_tan = QLineEdit()
+	self.LTD_tan = QLineEdit()
+	self.paramsList = [self.tau, self.cue_onset, self.cue_duration,
+	    self.alpha_func_a, self.alpha_func_b, self.alpha_func_a_camkII,
+	    self.alpha_func_b_camkII, self.sensory_amp, self.pf_amp,
+	    self.pause_mod_amp, self.pause_decay, self.w_tan_msn,
+	    self.w_msn_mot, self.w_pf_tan_init, self.w_ctx_msn_init,
+	    self.pr_alpha, self.response_threshold, self.AMPA_threshold,
+	    self.NMDA_threshold, self.DA_base, self.LTP_msn, self.LTD_msn,
+	    self.LTP_tan, self.LTD_tan]
+	self.initParamSettings.addWidget(paramTitle,0,0,1,2,Qt.AlignCenter)
+	self.initParamSettings.addWidget(self.loopButton,1,0,Qt.AlignCenter)
+	self.initParamSettings.addWidget(checkBox,1,1)
+	self.initParamSettings.addWidget(self.checkBox,1,2,Qt.AlignCenter)
+	self.initParamSettings.addWidget(tau,2,0)
+	self.initParamSettings.addWidget(cue_onset,3,0)
+	self.initParamSettings.addWidget(cue_duration,4,0)
+	self.initParamSettings.addWidget(alpha_func_a,5,0)
+	self.initParamSettings.addWidget(alpha_func_b,6,0)
+	self.initParamSettings.addWidget(alpha_func_a_camkII,7,0)
+	self.initParamSettings.addWidget(alpha_func_b_camkII,8,0)
+	self.initParamSettings.addWidget(sensory_amp,9,0)
+	self.initParamSettings.addWidget(pf_amp,10,0)
+	self.initParamSettings.addWidget(pause_mod_amp,11,0)
+	self.initParamSettings.addWidget(pause_decay,12,0)
+	self.initParamSettings.addWidget(w_tan_msn,13,0)
+	self.initParamSettings.addWidget(w_msn_mot,14,0)
+	self.initParamSettings.addWidget(w_pf_tan_init,15,0)
+	self.initParamSettings.addWidget(w_ctx_msn_init,16,0)
+	self.initParamSettings.addWidget(pr_alpha,17,0)
+	self.initParamSettings.addWidget(response_threshold,18,0)
+	self.initParamSettings.addWidget(AMPA_threshold,19,0)
+	self.initParamSettings.addWidget(NMDA_threshold,20,0)
+	self.initParamSettings.addWidget(DA_base,21,0)
+	self.initParamSettings.addWidget(LTP_msn,22,0)
+	self.initParamSettings.addWidget(LTD_msn,23,0)
+	self.initParamSettings.addWidget(LTP_tan,24,0)
+	self.initParamSettings.addWidget(LTD_tan,25,0)
+	self.initParamSettings.addWidget(self.tau,2,1)
+	self.initParamSettings.addWidget(self.cue_onset,3,1)
+	self.initParamSettings.addWidget(self.cue_duration,4,1)
+	self.initParamSettings.addWidget(self.alpha_func_a,5,1)
+	self.initParamSettings.addWidget(self.alpha_func_b,6,1)
+	self.initParamSettings.addWidget(self.alpha_func_a_camkII,7,1)
+	self.initParamSettings.addWidget(self.alpha_func_b_camkII,8,1)
+	self.initParamSettings.addWidget(self.sensory_amp,9,1)
+	self.initParamSettings.addWidget(self.pf_amp,10,1)
+	self.initParamSettings.addWidget(self.pause_mod_amp,11,1)
+	self.initParamSettings.addWidget(self.pause_decay,12,1)
+	self.initParamSettings.addWidget(self.w_tan_msn,13,1)
+	self.initParamSettings.addWidget(self.w_msn_mot,14,1)
+	self.initParamSettings.addWidget(self.w_pf_tan_init,15,1)
+	self.initParamSettings.addWidget(self.w_ctx_msn_init,16,1)
+	self.initParamSettings.addWidget(self.pr_alpha,17,1)
+	self.initParamSettings.addWidget(self.response_threshold,18,1)
+	self.initParamSettings.addWidget(self.AMPA_threshold,19,1)
+	self.initParamSettings.addWidget(self.NMDA_threshold,20,1)
+	self.initParamSettings.addWidget(self.DA_base,21,1)
+	self.initParamSettings.addWidget(self.LTP_msn,22,1)
+	self.initParamSettings.addWidget(self.LTD_msn,23,1)
+	self.initParamSettings.addWidget(self.LTP_tan,24,1)
+	self.initParamSettings.addWidget(self.LTD_tan,25,1)
+	self.initParams.setLayout(self.initParamSettings)
+
+	self.simOptions.addWidget(self.loopParams)
+	self.simOptions.addWidget(self.initParams)
+
 	# Layout for graphing widgets (2.1)
 	self.graphOptions = QWidget()
 	self.graphOptions.setVisible(False)
@@ -303,33 +463,6 @@ class GUI(QMainWindow):
 	graphingSettings.addWidget(self.graphParams,3,0,1,2,Qt.AlignCenter)
 	self.graphOptions.setLayout(graphingSettings)
 
-	# Layout for simulator widgets (2.2)
-	self.simOptions = QWidget()
-	self.simulatorSettings = QGridLayout()
-	simTitle = QLabel("<font size=6>Simulator Settings</font>")
-	numConditions = QLabel("Conditions:")
-	numSim = QLabel("Simulations:")
-	numTrials =  QLabel("Trials:")
-	numSteps =  QLabel("Steps:")
-	self.numCond = QLineEdit("1")
-	self.numCond.returnPressed.connect(self.genFuncBox)
-	self.numSim = QLineEdit("1")
-	self.numTrials = QLineEdit("300")
-	self.numSteps = QLineEdit("3000")
-	self.possibleFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
-	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
-	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
-	self.simulatorSettings.addWidget(simTitle,0,0,1,2,Qt.AlignCenter)
-	self.simulatorSettings.addWidget(numConditions,1,0)
-	self.simulatorSettings.addWidget(numSim,2,0)
-	self.simulatorSettings.addWidget(numTrials,3,0)
-	self.simulatorSettings.addWidget(numSteps,4,0)
-	self.simulatorSettings.addWidget(self.numCond,1,1,1,2)
-	self.simulatorSettings.addWidget(self.numSim,2,1,1,2)
-	self.simulatorSettings.addWidget(self.numTrials,3,1,1,2)
-	self.simulatorSettings.addWidget(self.numSteps,4,1,1,2)
-	self.simOptions.setLayout(self.simulatorSettings)
-
     # Creates paired QComboBoxes with connected clear QPushButton (2.2.1)
     def genFuncBox(self):
 	for x in range(int(self.numCond.text())):
@@ -343,9 +476,9 @@ class GUI(QMainWindow):
 	    self.possibleFuncsMap[x].addItems(funcs)
 	    self.possibleFuncsMap[x].activated.connect(self.pairComboBoxes(x))
 	    self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
-	    self.simulatorSettings.addWidget(self.possibleFuncsMap[x],x+5,0)
-	    self.simulatorSettings.addWidget(self.selectedFuncsMap[x],x+5,1)
-	    self.simulatorSettings.addWidget(self.clearFuncs[x],x+5,2)
+	    self.loopSettings.addWidget(self.possibleFuncsMap[x],x+6,0)
+	    self.loopSettings.addWidget(self.selectedFuncsMap[x],x+6,1)
+	    self.loopSettings.addWidget(self.clearFuncs[x],x+6,2)
 
     # Helper functions
     def pairComboBoxes(self,index):
@@ -361,6 +494,11 @@ class GUI(QMainWindow):
     def clearBox(self,index):
 	self.selectedFuncsMap[index].clear()
 
+    def switchSettings(self):
+	if self.simOptions.indexOf(self.simOptions.currentWidget()) == 0:
+	    self.simOptions.setCurrentIndex(1)
+	else:
+	    self.simOptions.setCurrentIndex(0)
 
     # (2.3) Builds graphing option layout (GraphParams) for each plot
     def addGraphOptions(self):

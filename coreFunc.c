@@ -16,6 +16,7 @@
 
 # pragma mark -- Function Declarations --
 // Simulator helper functions
+void custom_init_params(void);
 void initialize_parameters(void);
 void allocate_buffers(void);
 void initialize_buffers(void);
@@ -71,14 +72,16 @@ int num_simulations;
 int num_trials;
 int num_steps;
 int num_trialFuncs;
+int use_custom_params;
 int pad;
 
 int trial;
 int simulation;
-int cue_onset;
-int cue_duration;
+float cue_onset;
+float cue_duration;
 
 # pragma mark -- Spiking Network Declarations --
+float params[24];
 float tau;
 float noise;
 
@@ -202,10 +205,22 @@ int main(int argc, char * argv[]) {
     num_simulations = atoi(argv[3]);
     num_trials = atoi(argv[4]);
     num_steps = atoi(argv[5]);
-    num_trialFuncs = atoi(argv[6]);
-    pad = 7; // Spacer for reading off trial functions from argv[]
+    use_custom_params = atoi(argv[6]);
+    pad = 7; // Spacer for reading off remaing values in argv[]
 
-    initialize_parameters();
+    // Loop for parsing custom init params
+    if(use_custom_params == 1) {
+	for(int h=0; h<24; h++){
+	    params[h] = (float) atof(argv[h+pad]);
+	}
+	pad += 24;
+	custom_init_params();
+    }
+    else
+	initialize_parameters();
+
+    num_trialFuncs = atoi(argv[pad]);
+    pad += 1;
     allocate_buffers();
     initialize_buffers();
 
@@ -433,39 +448,61 @@ void simulate_reacquisition_8(int simulation){
     }
 }
 
-void initialize_parameters(void) {
-    tau = 1.0;
-
+void custom_init_params(void) {
     trial=0;
     simulation=0;
-
+    tau = params[0];
+    cue_onset = params[1];
+    cue_duration = params[2];
+    pf_cue_duration = cue_duration;
+    srand((int)time(NULL));
+    alpha_func_a = params[3];
+    alpha_func_b = params[4];
+    spike_length = floor(7.64*alpha_func_b);
+    alpha_func_a_camkII = params[5];
+    alpha_func_b_camkII = params[6];
+    spike_length_camkII = floor(7.64*alpha_func_b_camkII);
+    sensory_amp = params[7];
+    pf_amp = params[8];
+    pause_mod_amp = params[9];
+    pause_decay = params[10];
+    w_tan_msn = params[11];
+    w_msn_mot = params[12];
+    w_pf_tan_init = params[13];
+    w_ctx_msn_init = params[14];
+    pr_alpha = params[15];
+    response_threshold = params[16];
+    AMPA_threshold = params[17];
+    NMDA_threshold = params[18];
+    DA_base = params[19];
+    LTP_msn = params[20];
+    LTD_msn = params[21];
+    LTP_tan = params[22];
+    LTD_tan = params[23];
+}
+void initialize_parameters(void) {
+    trial=0;
+    simulation=0;
+    tau = 1.0;
     cue_onset = 1000;
     cue_duration = 1000;
     pf_cue_duration = cue_duration;
-
     srand((int)time(NULL));
-
     alpha_func_a = 1.0;
     alpha_func_b = 100.0;
     spike_length = floor(7.64*alpha_func_b);
-
     alpha_func_a_camkII = 50.0;
     alpha_func_b_camkII = 150.0;
     spike_length_camkII = floor(7.64*alpha_func_b_camkII);
-
     sensory_amp = 1500.0;
     pf_amp = 350.0;
     pause_mod_amp = 2.7;
     pause_decay = 0.0018;
-
     w_tan_msn = 125.0;
     w_msn_mot = 1.0;
-
     w_pf_tan_init = 0.2;
     w_ctx_msn_init = 0.2;
-
     pr_alpha = 0.01;
-
     response_threshold = 15.0;
     AMPA_threshold = 1.0;
     NMDA_threshold = 10.0;
