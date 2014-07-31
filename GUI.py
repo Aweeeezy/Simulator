@@ -29,9 +29,9 @@ class GUI(QMainWindow):
 	self.w.layout.setColumnStretch(1,5)
 
 	# Initializing sub-widgets
-	self.menu_init()      # (1)
-	self.options_init()   # (2)
-	self.display_init()   # (3)
+	self.menuInit()      # (1)
+	self.optionsInit()   # (2)
+	self.displayInit()   # (3)
 
         # More initialization stuff
 	self.w.layout.addWidget(self.simOptions,0,0)
@@ -43,7 +43,7 @@ class GUI(QMainWindow):
   ### (1) Menubar w/ support functions ###
   ###				       ###
 
-    def menu_init(self):
+    def menuInit(self):
 	self.menubar = QMenuBar()
 
 	# Menu: Open (1.1) & Save (1.2)
@@ -290,7 +290,7 @@ class GUI(QMainWindow):
   ### (2) Labels/layouts for setting options ###
   ###	    layouts & support functions	     ###
 
-    def options_init(self):
+    def optionsInit(self):
 	# Layout for simulator widgets (2.2)
 	self.simOptions = QStackedWidget()
 	self.loopParams = QWidget()
@@ -305,7 +305,7 @@ class GUI(QMainWindow):
 	numSim = QLabel("Simulations:")
 	numTrials =  QLabel("Trials:")
 	numSteps =  QLabel("Steps:")
-	self.numCond = QLineEdit("1")
+	self.numCond = QLineEdit()
 	self.numCond.returnPressed.connect(self.genFuncBox)
 	self.numSim = QLineEdit("1")
 	self.numTrials = QLineEdit("300")
@@ -591,7 +591,7 @@ class GUI(QMainWindow):
   ### (3) Console output & cyclable Matplotlib plots ###
   ###						     ###
 
-    def display_init(self):
+    def displayInit(self):
 	self.display = QStackedWidget()
 	self.console = QTextEdit()
 	self.console.setStyleSheet("QTextEdit { background-color: black }")

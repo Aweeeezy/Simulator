@@ -67,10 +67,10 @@ void update_response(int tick);
 // Parameters set from command line via argv[]
 char *dirPath;
 int condition;
-int num_conditions;
-int num_simulations;
-int num_trials;
-int num_steps;
+int numConditions;
+int numSimulations;
+int numTrials;
+int numSteps;
 int num_trialFuncs;
 int use_custom_params;
 int pad;
@@ -201,10 +201,10 @@ int main(int argc, char * argv[]) {
 
     // Variables essential for operation of the simulation
     dirPath = argv[1];
-    num_conditions = atoi(argv[2]);
-    num_simulations = atoi(argv[3]);
-    num_trials = atoi(argv[4]);
-    num_steps = atoi(argv[5]);
+    numConditions = atoi(argv[2]);
+    numSimulations = atoi(argv[3]);
+    numTrials = atoi(argv[4]);
+    numSteps = atoi(argv[5]);
     use_custom_params = atoi(argv[6]);
     pad = 7; // Spacer for reading off remaing values in argv[]
 
@@ -225,10 +225,10 @@ int main(int argc, char * argv[]) {
     initialize_buffers();
 
     // Main loop
-    for(condition=0; condition<num_conditions; condition++) {
+    for(condition=0; condition<numConditions; condition++) {
 	reset_records();
 	simulation = 0;
-	for(int i=0; i<num_simulations; i++) {
+	for(int i=0; i<numSimulations; i++) {
 	    reset_simulation();
 	    for(int j=0; j<num_trialFuncs; j++) {
 		char *trialFunc = argv[j+pad];
@@ -266,10 +266,10 @@ int main(int argc, char * argv[]) {
 
 void simulate_acquisition(int simulation){
     int jj = simulation;
-    for(int i=0; i<num_trials; i++) {
+    for(int i=0; i<numTrials; i++) {
         if(trial % 10 == 0) printf("Simulating trial %i\n", trial);
         reset_trial();
-        for(int j=1; j<num_steps; j++) {
+        for(int j=1; j<numSteps; j++) {
             update_pf(j);
             update_tan(j);
             update_sensory(j);
@@ -289,10 +289,10 @@ void simulate_acquisition(int simulation){
 
 void simulate_acquisition_full(int simulation) {
     int jj = simulation;
-    for(int i=0; i<num_trials; i++) {
+    for(int i=0; i<numTrials; i++) {
         if(trial % 10 == 0) printf("Simulating trial %i\n", trial);
         reset_trial();
-        for(int j=1; j<num_steps; j++) {
+        for(int j=1; j<numSteps; j++) {
             update_pf(j);
             update_tan(j);
             update_sensory(j);
@@ -312,10 +312,10 @@ void simulate_acquisition_full(int simulation) {
 
 void simulate_acquisition_partial(int simulation) {
     int jj = simulation;
-    for(int i=0; i<num_trials; i++) {
+    for(int i=0; i<numTrials; i++) {
         if(trial % 10 == 0) printf("Simulating trial %i\n", trial);
         reset_trial();
-        for(int j=1; j<num_steps; j++) {
+        for(int j=1; j<numSteps; j++) {
             update_pf(j);
             update_tan(j);
             update_sensory(j);
@@ -335,10 +335,10 @@ void simulate_acquisition_partial(int simulation) {
 
 void simulate_extinction(int simulation) {
     int jj = simulation;
-    for(int i=0; i<num_trials; i++) {
+    for(int i=0; i<numTrials; i++) {
         if(trial % 10 == 0) printf("Simulating trial %i\n", trial);
         reset_trial();
-        for(int j=1; j<num_steps; j++) {
+        for(int j=1; j<numSteps; j++) {
             update_pf(j);
             update_tan(j);
             update_sensory(j);
@@ -358,10 +358,10 @@ void simulate_extinction(int simulation) {
 
 void simulate_extinction_ext(int simulation){
     int jj = simulation;
-    for(int i=0; i<num_trials; i++) {
+    for(int i=0; i<numTrials; i++) {
         if(trial % 10 == 0) printf("Simulating trial %i\n", trial);
         reset_trial();
-        for(int j=1; j<num_steps; j++) {
+        for(int j=1; j<numSteps; j++) {
             update_pf(j);
             update_tan(j);
             update_sensory(j);
@@ -381,10 +381,10 @@ void simulate_extinction_ext(int simulation){
 
 void simulate_extinction_prf(int simulation){
     int jj = simulation;
-    for(int i=0; i<num_trials; i++) {
+    for(int i=0; i<numTrials; i++) {
         if(trial % 10 == 0) printf("Simulating trial %i\n", trial);
         reset_trial();
-        for(int j=1; j<num_steps; j++) {
+        for(int j=1; j<numSteps; j++) {
             update_pf(j);
             update_tan(j);
             update_sensory(j);
@@ -404,10 +404,10 @@ void simulate_extinction_prf(int simulation){
 
 void simulate_reacquisition_2(int simulation){
     int jj = simulation;
-    for(int i=0; i<num_trials; i++) {
+    for(int i=0; i<numTrials; i++) {
         if(trial % 10 == 0) printf("Simulating trial %i\n", trial);
         reset_trial();
-        for(int j=1; j<num_steps; j++) {
+        for(int j=1; j<numSteps; j++) {
             update_pf(j);
             update_tan(j);
             update_sensory(j);
@@ -427,10 +427,10 @@ void simulate_reacquisition_2(int simulation){
 
 void simulate_reacquisition_8(int simulation){
     int jj = simulation;
-    for(int i=0; i<num_trials; i++) {
+    for(int i=0; i<numTrials; i++) {
         if(trial % 10 == 0) printf("Simulating trial %i\n", trial);
         reset_trial();
-        for(int j=1; j<num_steps; j++) {
+        for(int j=1; j<numSteps; j++) {
             update_pf(j);
             update_tan(j);
             update_sensory(j);
@@ -516,90 +516,90 @@ void initialize_parameters(void) {
 void allocate_buffers(void) {
     spike = (float*) calloc(spike_length, sizeof(float));
     spike_camkII = (float*) calloc(spike_length, sizeof(float));
-    msn_camkII = (float *) calloc(num_steps, sizeof(float));
-    tan_camkII = (float *) calloc(num_steps, sizeof(float));
+    msn_camkII = (float *) calloc(numSteps, sizeof(float));
+    tan_camkII = (float *) calloc(numSteps, sizeof(float));
 
-    sensory_square = (float *) calloc(num_steps, sizeof(float));
+    sensory_square = (float *) calloc(numSteps, sizeof(float));
 
-    msn_v = (float *) calloc(num_steps, sizeof(float));
-    msn_u = (float *) calloc(num_steps, sizeof(float));
-    msn_output = (float *) calloc(num_steps, sizeof(float));
-    msn_spikes = (int *) calloc(num_steps, sizeof(int));
+    msn_v = (float *) calloc(numSteps, sizeof(float));
+    msn_u = (float *) calloc(numSteps, sizeof(float));
+    msn_output = (float *) calloc(numSteps, sizeof(float));
+    msn_spikes = (int *) calloc(numSteps, sizeof(int));
 
-    pause_mod = (float *) calloc(num_steps, sizeof(float));
-    pf_square = (float *) calloc(num_steps, sizeof(float));
+    pause_mod = (float *) calloc(numSteps, sizeof(float));
+    pf_square = (float *) calloc(numSteps, sizeof(float));
 
-    tan_v = (float *) calloc(num_steps, sizeof(float));
-    tan_u = (float *) calloc(num_steps, sizeof(float));
-    tan_output = (float *) calloc(num_steps, sizeof(float));
-    tan_spikes = (int *) calloc(num_steps, sizeof(int));
+    tan_v = (float *) calloc(numSteps, sizeof(float));
+    tan_u = (float *) calloc(numSteps, sizeof(float));
+    tan_output = (float *) calloc(numSteps, sizeof(float));
+    tan_spikes = (int *) calloc(numSteps, sizeof(int));
 
-    motor_v = (float *) calloc(num_steps, sizeof(float));
-    motor_output = (float *) calloc(num_steps, sizeof(float));
-    motor_spikes = (int *) calloc(num_steps, sizeof(int));
+    motor_v = (float *) calloc(numSteps, sizeof(float));
+    motor_output = (float *) calloc(numSteps, sizeof(float));
+    motor_spikes = (int *) calloc(numSteps, sizeof(int));
 
     // Records
-    w_ctx_msn_record = (float **) calloc(num_simulations, sizeof(float*));
-    w_pf_tan_record = (float **) calloc(num_simulations, sizeof(float*));
-    response_record = (int **) calloc(num_simulations, sizeof(int*));
-    response_time_record = (int **) calloc(num_simulations, sizeof(int*));
-    reward_record = (int **) calloc(num_simulations, sizeof(int*));
-    predicted_reward_record = (float **) calloc(num_simulations, sizeof(float*));
-    rpe_record = (float **) calloc(num_simulations, sizeof(float*));
-    DA_record = (float **) calloc(num_simulations, sizeof(float*));
+    w_ctx_msn_record = (float **) calloc(numSimulations, sizeof(float*));
+    w_pf_tan_record = (float **) calloc(numSimulations, sizeof(float*));
+    response_record = (int **) calloc(numSimulations, sizeof(int*));
+    response_time_record = (int **) calloc(numSimulations, sizeof(int*));
+    reward_record = (int **) calloc(numSimulations, sizeof(int*));
+    predicted_reward_record = (float **) calloc(numSimulations, sizeof(float*));
+    rpe_record = (float **) calloc(numSimulations, sizeof(float*));
+    DA_record = (float **) calloc(numSimulations, sizeof(float*));
 
-    sensory_square_record = (float ***) calloc(num_simulations, sizeof(float**));
-    msn_v_record = (float ***) calloc(num_simulations, sizeof(float**));
-    msn_output_record = (float ***) calloc(num_simulations, sizeof(float**));
-    msn_spikes_record = (int ***) calloc(num_simulations, sizeof(int**));
-    pf_square_record = (float ***) calloc(num_simulations, sizeof(float**));
-    tan_v_record = (float ***) calloc(num_simulations, sizeof(float**));
-    tan_output_record = (float ***) calloc(num_simulations, sizeof(float**));
-    tan_spikes_record = (int ***) calloc(num_simulations, sizeof(int**));
-    motor_v_record = (float ***) calloc(num_simulations, sizeof(float**));
-    motor_output_record = (float ***) calloc(num_simulations, sizeof(float**));
-    motor_spikes_record = (int ***) calloc(num_simulations, sizeof(int**));
+    sensory_square_record = (float ***) calloc(numSimulations, sizeof(float**));
+    msn_v_record = (float ***) calloc(numSimulations, sizeof(float**));
+    msn_output_record = (float ***) calloc(numSimulations, sizeof(float**));
+    msn_spikes_record = (int ***) calloc(numSimulations, sizeof(int**));
+    pf_square_record = (float ***) calloc(numSimulations, sizeof(float**));
+    tan_v_record = (float ***) calloc(numSimulations, sizeof(float**));
+    tan_output_record = (float ***) calloc(numSimulations, sizeof(float**));
+    tan_spikes_record = (int ***) calloc(numSimulations, sizeof(int**));
+    motor_v_record = (float ***) calloc(numSimulations, sizeof(float**));
+    motor_output_record = (float ***) calloc(numSimulations, sizeof(float**));
+    motor_spikes_record = (int ***) calloc(numSimulations, sizeof(int**));
 
-    for(int i=0; i<num_simulations; i++) {
-        w_ctx_msn_record[i] = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-        w_pf_tan_record[i] = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-        response_record[i] = (int *) calloc(num_trials*num_trialFuncs, sizeof(int));
-        response_time_record[i] = (int *) calloc(num_trials*num_trialFuncs, sizeof(float));
-        reward_record[i] = (int *) calloc(num_trials*num_trialFuncs, sizeof(int));
-        predicted_reward_record[i] = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-        rpe_record[i] = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-        DA_record[i] = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
+    for(int i=0; i<numSimulations; i++) {
+        w_ctx_msn_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+        w_pf_tan_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+        response_record[i] = (int *) calloc(numTrials*num_trialFuncs, sizeof(int));
+        response_time_record[i] = (int *) calloc(numTrials*num_trialFuncs, sizeof(float));
+        reward_record[i] = (int *) calloc(numTrials*num_trialFuncs, sizeof(int));
+        predicted_reward_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+        rpe_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+        DA_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
 
-        sensory_square_record[i] = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-        msn_v_record[i] = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-        msn_output_record[i] = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-        msn_spikes_record[i] = (int **) calloc(num_trials*num_trialFuncs, sizeof(int*));
-        pf_square_record[i] = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-        tan_v_record[i] = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-        tan_output_record[i] = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-        tan_spikes_record[i] = (int **) calloc(num_trials*num_trialFuncs, sizeof(int*));
-        motor_v_record[i] = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-        motor_output_record[i] = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-        motor_spikes_record[i] = (int **) calloc(num_trials*num_trialFuncs, sizeof(int*));
+        sensory_square_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+        msn_v_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+        msn_output_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+        msn_spikes_record[i] = (int **) calloc(numTrials*num_trialFuncs, sizeof(int*));
+        pf_square_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+        tan_v_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+        tan_output_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+        tan_spikes_record[i] = (int **) calloc(numTrials*num_trialFuncs, sizeof(int*));
+        motor_v_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+        motor_output_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+        motor_spikes_record[i] = (int **) calloc(numTrials*num_trialFuncs, sizeof(int*));
     }
 
-    for(int i=0; i<num_simulations; i++) {
-        for(int j=0; j<num_trials*num_trialFuncs; j++) {
-            sensory_square_record[i][j] = (float *) calloc(num_steps, sizeof(float));
-            msn_v_record[i][j] = (float *) calloc(num_steps, sizeof(float));
-            msn_output_record[i][j] = (float *) calloc(num_steps, sizeof(float));
-            msn_spikes_record[i][j] = (int *) calloc(num_steps, sizeof(int));
-            pf_square_record[i][j] = (float *) calloc(num_steps, sizeof(float));
-            tan_v_record[i][j] = (float *) calloc(num_steps, sizeof(float));
-            tan_output_record[i][j] = (float *) calloc(num_steps, sizeof(float));
-            tan_spikes_record[i][j] = (int *) calloc(num_steps, sizeof(int));
-            motor_v_record[i][j] = (float *) calloc(num_steps, sizeof(float));
-            motor_output_record[i][j] = (float *) calloc(num_steps, sizeof(float));
-            motor_spikes_record[i][j] = (int *) calloc(num_steps, sizeof(int));
+    for(int i=0; i<numSimulations; i++) {
+        for(int j=0; j<numTrials*num_trialFuncs; j++) {
+            sensory_square_record[i][j] = (float *) calloc(numSteps, sizeof(float));
+            msn_v_record[i][j] = (float *) calloc(numSteps, sizeof(float));
+            msn_output_record[i][j] = (float *) calloc(numSteps, sizeof(float));
+            msn_spikes_record[i][j] = (int *) calloc(numSteps, sizeof(int));
+            pf_square_record[i][j] = (float *) calloc(numSteps, sizeof(float));
+            tan_v_record[i][j] = (float *) calloc(numSteps, sizeof(float));
+            tan_output_record[i][j] = (float *) calloc(numSteps, sizeof(float));
+            tan_spikes_record[i][j] = (int *) calloc(numSteps, sizeof(int));
+            motor_v_record[i][j] = (float *) calloc(numSteps, sizeof(float));
+            motor_output_record[i][j] = (float *) calloc(numSteps, sizeof(float));
+            motor_spikes_record[i][j] = (int *) calloc(numSteps, sizeof(int));
         }
     }
 
-    for (int i=0; i<num_steps; i++) {
+    for (int i=0; i<numSteps; i++) {
         sensory_square_record[simulation][trial][i] = sensory_square[i];
         msn_v_record[simulation][trial][i] = msn_v[i];
         msn_output_record[simulation][trial][i] = msn_output[i];
@@ -614,39 +614,39 @@ void allocate_buffers(void) {
     }
 
     // Average records
-    w_ctx_msn_record_ave = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-    w_pf_tan_record_ave = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-    response_record_ave = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-    response_time_record_ave = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-    reward_record_ave = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-    predicted_reward_record_ave = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-    rpe_record_ave = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
-    DA_record_ave = (float *) calloc(num_trials*num_trialFuncs, sizeof(float));
+    w_ctx_msn_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+    w_pf_tan_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+    response_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+    response_time_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+    reward_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+    predicted_reward_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+    rpe_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+    DA_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
 
-    sensory_square_record_ave = (float **) calloc(num_trials*num_trialFuncs,sizeof(float*));
-    msn_v_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-    msn_output_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-    msn_spikes_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-    pf_square_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-    tan_v_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-    tan_output_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-    tan_spikes_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-    motor_v_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-    motor_output_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
-    motor_spikes_record_ave = (float **) calloc(num_trials*num_trialFuncs, sizeof(float*));
+    sensory_square_record_ave = (float **) calloc(numTrials*num_trialFuncs,sizeof(float*));
+    msn_v_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    msn_output_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    msn_spikes_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    pf_square_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    tan_v_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    tan_output_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    tan_spikes_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    motor_v_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    motor_output_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    motor_spikes_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
 
-    for(int i=0; i<num_trials*num_trialFuncs; i++) {
-        sensory_square_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        msn_v_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        msn_output_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        msn_spikes_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        pf_square_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        tan_v_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        tan_output_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        tan_spikes_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        motor_v_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        motor_output_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
-        motor_spikes_record_ave[i] = (float *) calloc(num_steps, sizeof(float));
+    for(int i=0; i<numTrials*num_trialFuncs; i++) {
+        sensory_square_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        msn_v_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        msn_output_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        msn_spikes_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        pf_square_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        tan_v_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        tan_output_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        tan_spikes_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        motor_v_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        motor_output_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
+        motor_spikes_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
     }
 }
 
@@ -672,7 +672,7 @@ void record_trial(int sim, int trl) {
     rpe_record[simulation][trial] = rpe;
     DA_record[simulation][trial] = DA;
 
-    for (int i=0; i<num_steps; i++) {
+    for (int i=0; i<numSteps; i++) {
         sensory_square_record[simulation][trial][i] = sensory_square[i];
         msn_v_record[simulation][trial][i] = msn_v[i];
         msn_output_record[simulation][trial][i] = msn_output[i];
@@ -695,23 +695,23 @@ void reset_trial(void) {
     DA = 0;
     // NOTE: do not reset predicted_reward
 
-    memset(msn_camkII, 0, num_steps*sizeof(float));
-    memset(tan_camkII, 0, num_steps*sizeof(float));
-    memset(sensory_square, 0, num_steps*sizeof(float));
-    memset(msn_v, 0, num_steps*sizeof(float));
-    memset(msn_u, 0, num_steps*sizeof(float));
-    memset(msn_output, 0, num_steps*sizeof(float));
-    memset(msn_spikes, 0, num_steps*sizeof(int));
-    memset(pf_square, 0, num_steps*sizeof(float));
-    memset(pf_square, 0, num_steps*sizeof(float));
-    memset(pause_mod, 0, num_steps*sizeof(float));
-    memset(tan_v, 0, num_steps*sizeof(float));
-    memset(tan_u, 0, num_steps*sizeof(float));
-    memset(tan_output, 0, num_steps*sizeof(float));
-    memset(tan_spikes, 0, num_steps*sizeof(int));
-    memset(motor_v, 0, num_steps*sizeof(float));
-    memset(motor_output, 0, num_steps*sizeof(float));
-    memset(motor_spikes, 0, num_steps*sizeof(int));
+    memset(msn_camkII, 0, numSteps*sizeof(float));
+    memset(tan_camkII, 0, numSteps*sizeof(float));
+    memset(sensory_square, 0, numSteps*sizeof(float));
+    memset(msn_v, 0, numSteps*sizeof(float));
+    memset(msn_u, 0, numSteps*sizeof(float));
+    memset(msn_output, 0, numSteps*sizeof(float));
+    memset(msn_spikes, 0, numSteps*sizeof(int));
+    memset(pf_square, 0, numSteps*sizeof(float));
+    memset(pf_square, 0, numSteps*sizeof(float));
+    memset(pause_mod, 0, numSteps*sizeof(float));
+    memset(tan_v, 0, numSteps*sizeof(float));
+    memset(tan_u, 0, numSteps*sizeof(float));
+    memset(tan_output, 0, numSteps*sizeof(float));
+    memset(tan_spikes, 0, numSteps*sizeof(int));
+    memset(motor_v, 0, numSteps*sizeof(float));
+    memset(motor_output, 0, numSteps*sizeof(float));
+    memset(motor_spikes, 0, numSteps*sizeof(int));
 }
 
 void reset_simulation(void) {
@@ -721,44 +721,44 @@ void reset_simulation(void) {
 }
 
 void reset_records(void) {
-    memset(w_ctx_msn_record_ave, 0, num_trials*num_trialFuncs*sizeof(float));
-    memset(w_pf_tan_record_ave, 0, num_trials*num_trialFuncs*sizeof(float));
-    memset(response_record_ave, 0, num_trials*num_trialFuncs*sizeof(float));
-    memset(response_time_record_ave, 0, num_trials*num_trialFuncs*sizeof(float));
-    memset(reward_record_ave, 0, num_trials*num_trialFuncs*sizeof(float));
-    memset(predicted_reward_record_ave, 0, num_trials*num_trialFuncs*sizeof(float));
-    memset(rpe_record_ave, 0, num_trials*num_trialFuncs*sizeof(float));
-    memset(DA_record_ave, 0, num_trials*num_trialFuncs*sizeof(float));
+    memset(w_ctx_msn_record_ave, 0, numTrials*num_trialFuncs*sizeof(float));
+    memset(w_pf_tan_record_ave, 0, numTrials*num_trialFuncs*sizeof(float));
+    memset(response_record_ave, 0, numTrials*num_trialFuncs*sizeof(float));
+    memset(response_time_record_ave, 0, numTrials*num_trialFuncs*sizeof(float));
+    memset(reward_record_ave, 0, numTrials*num_trialFuncs*sizeof(float));
+    memset(predicted_reward_record_ave, 0, numTrials*num_trialFuncs*sizeof(float));
+    memset(rpe_record_ave, 0, numTrials*num_trialFuncs*sizeof(float));
+    memset(DA_record_ave, 0, numTrials*num_trialFuncs*sizeof(float));
 
-    for(int i=0; i<num_simulations; i++) {
-        memset(w_ctx_msn_record[i], 0, num_trials*num_trialFuncs*sizeof(float));
-        memset(w_pf_tan_record[i], 0, num_trials*num_trialFuncs*sizeof(float));
-        memset(response_record[i], 0, num_trials*num_trialFuncs*sizeof(int));
-        memset(response_time_record[i], 0, num_trials*num_trialFuncs*sizeof(int));
-        memset(reward_record[i], 0, num_trials*num_trialFuncs*sizeof(int));
-        memset(predicted_reward_record[i], 0, num_trials*num_trialFuncs*sizeof(float));
-        memset(rpe_record[i], 0, num_trials*num_trialFuncs*sizeof(float));
-        memset(DA_record[i], 0, num_trials*num_trialFuncs*sizeof(float));
+    for(int i=0; i<numSimulations; i++) {
+        memset(w_ctx_msn_record[i], 0, numTrials*num_trialFuncs*sizeof(float));
+        memset(w_pf_tan_record[i], 0, numTrials*num_trialFuncs*sizeof(float));
+        memset(response_record[i], 0, numTrials*num_trialFuncs*sizeof(int));
+        memset(response_time_record[i], 0, numTrials*num_trialFuncs*sizeof(int));
+        memset(reward_record[i], 0, numTrials*num_trialFuncs*sizeof(int));
+        memset(predicted_reward_record[i], 0, numTrials*num_trialFuncs*sizeof(float));
+        memset(rpe_record[i], 0, numTrials*num_trialFuncs*sizeof(float));
+        memset(DA_record[i], 0, numTrials*num_trialFuncs*sizeof(float));
 
-        for (int j=0; j<num_trials*num_trialFuncs; j++) {
-            memset(sensory_square_record[i][j], 0, num_steps*sizeof(float));
-            memset(msn_v_record[i][j], 0, num_steps*sizeof(float));
-            memset(msn_output_record[i][j], 0, num_steps*sizeof(float));
-            memset(msn_spikes_record[i][j], 0, num_steps*sizeof(int));
-            memset(pf_square_record[i][j], 0, num_steps*sizeof(float));
-            memset(tan_v_record[i][j], 0, num_steps*sizeof(float));
-            memset(tan_output_record[i][j], 0, num_steps*sizeof(float));
-            memset(tan_spikes_record[i][j], 0, num_steps*sizeof(int));
-            memset(motor_v_record[i][j], 0, num_steps*sizeof(float));
-            memset(motor_output_record[i][j], 0, num_steps*sizeof(float));
-            memset(motor_spikes_record[i][j], 0, num_steps*sizeof(int));
+        for (int j=0; j<numTrials*num_trialFuncs; j++) {
+            memset(sensory_square_record[i][j], 0, numSteps*sizeof(float));
+            memset(msn_v_record[i][j], 0, numSteps*sizeof(float));
+            memset(msn_output_record[i][j], 0, numSteps*sizeof(float));
+            memset(msn_spikes_record[i][j], 0, numSteps*sizeof(int));
+            memset(pf_square_record[i][j], 0, numSteps*sizeof(float));
+            memset(tan_v_record[i][j], 0, numSteps*sizeof(float));
+            memset(tan_output_record[i][j], 0, numSteps*sizeof(float));
+            memset(tan_spikes_record[i][j], 0, numSteps*sizeof(int));
+            memset(motor_v_record[i][j], 0, numSteps*sizeof(float));
+            memset(motor_output_record[i][j], 0, numSteps*sizeof(float));
+            memset(motor_spikes_record[i][j], 0, numSteps*sizeof(int));
         }
     }
 }
 
 void compute_average_results(void) {
-    for(int i=0; i<num_simulations; i++) {
-        for(int j=0; j<num_trials*num_trialFuncs; j++) {
+    for(int i=0; i<numSimulations; i++) {
+        for(int j=0; j<numTrials*num_trialFuncs; j++) {
             w_ctx_msn_record_ave[j] += w_ctx_msn_record[i][j];
             w_pf_tan_record_ave[j] += w_pf_tan_record[i][j];
             response_record_ave[j] += response_record[i][j];
@@ -768,7 +768,7 @@ void compute_average_results(void) {
             rpe_record_ave[j] += rpe_record[i][j];
             DA_record_ave[j] += DA_record[i][j];
 
-            for(int k=0; k<num_steps; k++) {
+            for(int k=0; k<numSteps; k++) {
                 sensory_square_record_ave[j][k] += sensory_square_record[i][j][k];
                 msn_v_record_ave[j][k] += msn_v_record[i][j][k];
                 msn_output_record_ave[j][k] += msn_output_record[i][j][k];
@@ -784,29 +784,29 @@ void compute_average_results(void) {
         }
     }
 
-    for(int j=0; j<num_trials*num_trialFuncs; j++) {
-        w_ctx_msn_record_ave[j] /= (float) num_simulations;
-        w_pf_tan_record_ave[j] /= (float) num_simulations;
-        response_record_ave[j] /= (float) num_simulations;
-        response_time_record_ave[j] /= (float) num_simulations;
+    for(int j=0; j<numTrials*num_trialFuncs; j++) {
+        w_ctx_msn_record_ave[j] /= (float) numSimulations;
+        w_pf_tan_record_ave[j] /= (float) numSimulations;
+        response_record_ave[j] /= (float) numSimulations;
+        response_time_record_ave[j] /= (float) numSimulations;
 
-        reward_record_ave[j] /= (float) num_simulations;
-        predicted_reward_record_ave[j] /= (float) num_simulations;
-        rpe_record_ave[j] /= (float) num_simulations;
-        DA_record_ave[j] /= (float) num_simulations;
+        reward_record_ave[j] /= (float) numSimulations;
+        predicted_reward_record_ave[j] /= (float) numSimulations;
+        rpe_record_ave[j] /= (float) numSimulations;
+        DA_record_ave[j] /= (float) numSimulations;
 
-        for(int k=0; k<num_steps; k++) {
-            sensory_square_record_ave[j][k] /= (float) num_simulations;
-            msn_v_record_ave[j][k] /= (float) num_simulations;
-            msn_output_record_ave[j][k] /= (float) num_simulations;
-            msn_spikes_record_ave[j][k] /= (float) num_simulations;
-            pf_square_record_ave[j][k] /= (float) num_simulations;
-            tan_v_record_ave[j][k] /= (float) num_simulations;
-            tan_output_record_ave[j][k] /= (float) num_simulations;
-            tan_spikes_record_ave[j][k] /= (float) num_simulations;
-            motor_v_record_ave[j][k] /= (float) num_simulations;
-            motor_output_record_ave[j][k] /= (float) num_simulations;
-            motor_spikes_record_ave[j][k] /= (float) num_simulations;
+        for(int k=0; k<numSteps; k++) {
+            sensory_square_record_ave[j][k] /= (float) numSimulations;
+            msn_v_record_ave[j][k] /= (float) numSimulations;
+            msn_output_record_ave[j][k] /= (float) numSimulations;
+            msn_spikes_record_ave[j][k] /= (float) numSimulations;
+            pf_square_record_ave[j][k] /= (float) numSimulations;
+            tan_v_record_ave[j][k] /= (float) numSimulations;
+            tan_output_record_ave[j][k] /= (float) numSimulations;
+            tan_spikes_record_ave[j][k] /= (float) numSimulations;
+            motor_v_record_ave[j][k] /= (float) numSimulations;
+            motor_output_record_ave[j][k] /= (float) numSimulations;
+            motor_spikes_record_ave[j][k] /= (float) numSimulations;
         }
     }
 }
@@ -960,8 +960,8 @@ void save_average_essentials(void) {
     free(c);
 
 
-    for(int i=0; i<num_trials*num_trialFuncs; i++) {
-        for(int j=0; j<num_steps; j++) {
+    for(int i=0; i<numTrials*num_trialFuncs; i++) {
+        for(int j=0; j<numSteps; j++) {
             fprintf(fid_sensory_output, "%g\n", sensory_square_record_ave[i][j]);
             fprintf(fid_msn_output, "%g\n",msn_output_record_ave[i][j]);
             fprintf(fid_pf_output, "%g\n", pf_square_record_ave[i][j]);
@@ -1030,22 +1030,22 @@ void update_tan(int tick) {
         tan_u[t]=tan_u[t]+D;
 
         // track cell output
-        if(t<num_steps-spike_length) {
+        if(t<numSteps-spike_length) {
             for(int j=0; j<spike_length; j++) {
                 tan_output[t+j] += spike[j];
             }
         } else {
-            for(int j=0; j<num_steps-t; j++) {
+            for(int j=0; j<numSteps-t; j++) {
                 tan_output[t+j] += spike[j];
             }
         }
 
-        if(t<num_steps-spike_length_camkII) {
+        if(t<numSteps-spike_length_camkII) {
             for(int j=0; j<spike_length_camkII; j++) {
                 tan_camkII[t+j] += spike_camkII[j];
             }
         } else {
-            for(int j=0; j<num_steps-t; j++) {
+            for(int j=0; j<numSteps-t; j++) {
                 tan_camkII[t+j] += spike_camkII[j];
             }
         }
@@ -1079,23 +1079,23 @@ void update_msn(int tick) {
         msn_u[t]=msn_u[t]+D;
 
         // track cell output
-        if(t<num_steps-spike_length) {
+        if(t<numSteps-spike_length) {
             for(int j=0; j<spike_length; j++) {
                 msn_output[t+j] += spike[j];
             }
         } else {
-            for(int j=0; j<num_steps-t; j++) {
+            for(int j=0; j<numSteps-t; j++) {
                 msn_output[t+j] += spike[j];
             }
         }
 
         // track cell output
-        if(t<num_steps-spike_length_camkII) {
+        if(t<numSteps-spike_length_camkII) {
             for(int j=0; j<spike_length_camkII; j++) {
                 msn_camkII[t+j] += spike_camkII[j];
             }
         } else {
-            for(int j=0; j<num_steps-t; j++) {
+            for(int j=0; j<numSteps-t; j++) {
                 msn_camkII[t+j] += spike_camkII[j];
             }
         }
@@ -1121,13 +1121,13 @@ void update_motor(int tick) {
         motor_v[t]=vpeak;
         motor_v[t]=c;
 
-        if(t<num_steps-spike_length) {
+        if(t<numSteps-spike_length) {
             for(int j=0; j<spike_length; j++)
             {
                 motor_output[t+j] += spike[j];
             }
         }else {
-            for(int j=0; j<num_steps-t; j++) {
+            for(int j=0; j<numSteps-t; j++) {
                 motor_output[t+j] += spike[j];
             }
         }
