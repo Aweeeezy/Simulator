@@ -241,28 +241,34 @@ class GUI(QMainWindow):
 	# If !empty, user reselected a different # of graphs to add
 	# so recategoriztion is not necessary
 	if self.opts["Fig1"].dataBox.count() == 0:
-            self.dataLengths = []
+	    self.dataLengths = []
 	    for _file in self.files:
-                with open(self.dirPath+'/'+_file) as f:
-                    data = f.readlines()
+		with open(self.dirPath+'/'+_file) as f:
+		    data = f.readlines()
 		    print "Length of",_file,"is",len(data)
 		    if len(data) != 0:
 			self.dataLengths.append(len(data))
 	    # These 3 *should* work; but, for reasons further down the
 	    # line, they may not (see README for details)
-            self.dataLength_1 = min(self.dataLengths)
-            self.dataLength_2 = max(self.dataLengths)
-            self.numSteps = self.dataLength_2/self.dataLength_1
-            self.trialData = []
-            self.timeStepData = []
-            for _file in self.files:
-                with open(self.dirPath+'/'+_file) as f:
-                    data = f.readlines()
-                if len(data) == self.dataLength_1:
-                    self.trialData.append(_file)
-                elif len(data) == self.dataLength_2:
-                    self.timeStepData.append(_file)
-            self.fillDataBoxes()
+	    self.dataLength_1 = min(self.dataLengths)
+	    self.dataLength_2 = max(self.dataLengths)
+	    self.timeSteps = self.dataLength_2/self.dataLength_1
+	    #self.dataLengths_1 = int(self.numTrials.text())*int(self.numCond.text())
+	    #self.dataLengths_2 = int(self.numSteps.text())*int(self.dataLengths_1)
+	    #self.timeSteps = int(self.numSteps.text())
+	    self.trialData = []
+	    self.timeStepData = []
+	    for _file in self.files:
+		print "opening", _file
+		with open(self.dirPath+'/'+_file) as f:
+		    data = f.readlines()
+		if len(data) == self.dataLength_1:
+		    print "\tputting data in trialData"
+		    self.trialData.append(_file)
+		elif len(data) == self.dataLength_2:
+		    print "\tputting data in timeStepData"
+		    self.timeStepData.append(_file)
+	    self.fillDataBoxes()
 
     # Fills dataBoxes w/ files (size based) according to styleSelect (1.5.4)
     def fillDataBoxes(self):
@@ -276,7 +282,7 @@ class GUI(QMainWindow):
                     self.console.insertPlainText("\n\nAdding to dataBox:\n\t"+\
                     '\n\t'.join('%s' % (x) for x in self.timeStepData))
                     self.opts[fig].dataBox.addItems(self.timeStepData)
-                    self.opts[fig].changeTrial(steps=self.numSteps,\
+                    self.opts[fig].changeTrial(steps=self.timeSteps,\
                                                        trials=self.dataLength_1)
 		# Until I get a better feel for how suface plot data will be
 		# structured, this adds all files to surface plot dataBox
@@ -292,15 +298,20 @@ class GUI(QMainWindow):
 
     def optionsInit(self):
 	# Layout for simulator widgets (2.2)
-	self.simOptions = QStackedWidget()
-	self.loopParams = QWidget()
-	self.initParams = QWidget()
+	#self.simOptions = QStackedWidget()
+	self.simOptions = QWidget()
+	self.simOptLayout = QGridLayout()
+	self.loopParams1 = QWidget()
+	self.initParams1 = QWidget()
+	self.loopParams2 = QWidget()
+	self.initParams2 = QWidget()
+	self.initParams1.setVisible(False)
+	self.loopParams2.setVisible(False)
+	self.initParams2.setVisible(False)
 
 	# Loop settings
 	self.loopSettings = QGridLayout()
-	loopTitle = QLabel("<font size=6>Simulator Loop Settings</font>")
-	self.paramsButton = QPushButton("Init Params")
-	self.paramsButton.pressed.connect(self.switchSettings)
+	loopTitle = QLabel("<font size=6>Loop Parameters</font>")
 	numConditions = QLabel("Conditions:")
 	numSim = QLabel("Simulations:")
 	numTrials =  QLabel("Trials:")
@@ -310,26 +321,25 @@ class GUI(QMainWindow):
 	self.numSim = QLineEdit("1")
 	self.numTrials = QLineEdit("300")
 	self.numSteps = QLineEdit("3000")
+
 	self.possibleFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
 	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
 	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
+
 	self.loopSettings.addWidget(loopTitle,0,0,1,2,Qt.AlignCenter)
-	self.loopSettings.addWidget(self.paramsButton,1,0,1,2,Qt.AlignCenter)
-	self.loopSettings.addWidget(numConditions,2,0)
-	self.loopSettings.addWidget(numSim,3,0)
-	self.loopSettings.addWidget(numTrials,4,0)
-	self.loopSettings.addWidget(numSteps,5,0)
-	self.loopSettings.addWidget(self.numCond,2,1,1,2)
-	self.loopSettings.addWidget(self.numSim,3,1,1,2)
-	self.loopSettings.addWidget(self.numTrials,4,1,1,2)
-	self.loopSettings.addWidget(self.numSteps,5,1,1,2)
-	self.loopParams.setLayout(self.loopSettings)
+	self.loopSettings.addWidget(numConditions,1,0)
+	self.loopSettings.addWidget(numSim,2,0)
+	self.loopSettings.addWidget(numTrials,3,0)
+	self.loopSettings.addWidget(numSteps,4,0)
+	self.loopSettings.addWidget(self.numCond,1,1,1,2)
+	self.loopSettings.addWidget(self.numSim,2,1,1,2)
+	self.loopSettings.addWidget(self.numTrials,3,1,1,2)
+	self.loopSettings.addWidget(self.numSteps,4,1,1,2)
+	self.loopParams1.setLayout(self.loopSettings)
 
 	# Optional initialization parameters
 	self.initParamSettings = QGridLayout()
 	paramTitle = QLabel("<font size=6>Initialization Parameters</font>")
-	self.loopButton = QPushButton("Loop Settings")
-	self.loopButton.pressed.connect(self.switchSettings)
 	checkBox = QLabel("Use custom init params:")
 	self.checkBox = QCheckBox()
 	tau = QLabel("Tau:")
@@ -356,6 +366,7 @@ class GUI(QMainWindow):
 	LTD_msn = QLabel("LTD Msn:")
 	LTP_tan = QLabel("LTP Tan:")
 	LTD_tan = QLabel("LTD Tan:")
+
 	self.tau = QLineEdit()
 	self.cue_onset = QLineEdit()
 	self.cue_duration = QLineEdit()
@@ -380,6 +391,7 @@ class GUI(QMainWindow):
 	self.LTD_msn = QLineEdit()
 	self.LTP_tan = QLineEdit()
 	self.LTD_tan = QLineEdit()
+
 	self.paramsList = [self.tau, self.cue_onset, self.cue_duration,
 	    self.alpha_func_a, self.alpha_func_b, self.alpha_func_a_camkII,
 	    self.alpha_func_b_camkII, self.sensory_amp, self.pf_amp,
@@ -388,8 +400,8 @@ class GUI(QMainWindow):
 	    self.pr_alpha, self.response_threshold, self.AMPA_threshold,
 	    self.NMDA_threshold, self.DA_base, self.LTP_msn, self.LTD_msn,
 	    self.LTP_tan, self.LTD_tan]
+
 	self.initParamSettings.addWidget(paramTitle,0,0,1,2,Qt.AlignCenter)
-	self.initParamSettings.addWidget(self.loopButton,1,0,Qt.AlignCenter)
 	self.initParamSettings.addWidget(checkBox,1,1)
 	self.initParamSettings.addWidget(self.checkBox,1,2,Qt.AlignCenter)
 	self.initParamSettings.addWidget(tau,2,0)
@@ -440,10 +452,23 @@ class GUI(QMainWindow):
 	self.initParamSettings.addWidget(self.LTD_msn,23,1)
 	self.initParamSettings.addWidget(self.LTP_tan,24,1)
 	self.initParamSettings.addWidget(self.LTD_tan,25,1)
-	self.initParams.setLayout(self.initParamSettings)
+	self.initParams1.setLayout(self.initParamSettings)
 
-	self.simOptions.addWidget(self.loopParams)
-	self.simOptions.addWidget(self.initParams)
+	#self.simOptions.addWidget(self.loopParams1)
+	#self.simOptions.addWidget(self.initParams1)
+	self.toolbar = QToolBar()
+	self.paramsButton = QPushButton("initParams/loopParams")
+	self.coreFunc = QPushButton("coreFunc2")
+	self.paramsButton.pressed.connect(self.switchSettings)
+	self.coreFunc.pressed.connect(self.switchCoreFuncs)
+	self.toolbar.addWidget(self.paramsButton)
+	self.toolbar.addWidget(self.coreFunc)
+	self.simOptLayout.addWidget(self.toolbar,0,0)
+	self.simOptLayout.addWidget(self.loopParams1,1,0)
+	self.simOptLayout.addWidget(self.initParams1,1,0)
+	self.simOptLayout.addWidget(self.loopParams2,1,0)
+	self.simOptLayout.addWidget(self.initParams2,1,0)
+	self.simOptions.setLayout(self.simOptLayout)
 
 	# Layout for graphing widgets (2.1)
 	self.graphOptions = QWidget()
@@ -495,10 +520,34 @@ class GUI(QMainWindow):
 	self.selectedFuncsMap[index].clear()
 
     def switchSettings(self):
-	if self.simOptions.indexOf(self.simOptions.currentWidget()) == 0:
-	    self.simOptions.setCurrentIndex(1)
-	else:
-	    self.simOptions.setCurrentIndex(0)
+	if self.coreFunc.text() == "coreFunc1":
+	    if self.loopParams2.isVisible() == True:
+		self.loopParams2.setVisible(False)
+		self.initParams2.setVisible(True)
+	    else:
+		self.loopParams2.setVisible(True)
+		self.initParams2.setVisible(False)
+	elif self.coreFunc.text() == "coreFunc2":
+	    if self.loopParams1.isVisible() == True:
+		self.loopParams1.setVisible(False)
+		self.initParams1.setVisible(True)
+	    else:
+		self.loopParams1.setVisible(True)
+		self.initParams1.setVisible(False)
+
+    def switchCoreFuncs(self):
+	if self.coreFunc.text() == "coreFunc2":
+	    self.loopParams1.setVisible(False)
+	    self.initParams1.setVisible(False)
+	    self.loopParams2.setVisible(True)
+	    self.initParams2.setVisible(True)
+	    self.coreFunc.setText("coreFunc1")
+	elif self.coreFunc.text() == "coreFunc1":
+	    self.loopParams2.setVisible(False)
+	    self.initParams2.setVisible(False)
+	    self.loopParams1.setVisible(True)
+	    self.initParams1.setVisible(True)
+	    self.coreFunc.setText("coreFunc2")
 
     # (2.3) Builds graphing option layout (GraphParams) for each plot
     def addGraphOptions(self):
