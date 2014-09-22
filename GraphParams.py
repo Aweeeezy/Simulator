@@ -8,32 +8,52 @@ class GraphParams(QWidget):
         self.mpl = mpl
         self.gui = gui
 	self.layout = QGridLayout()
-	self.styleSelect = QComboBox()
-	self.styleSelect.currentIndexChanged.connect(self.initOptions)
-	self.styleSelect.addItem("Trial Plot")
-	self.styleSelect.addItem("Time Plot")
-	self.styleSelect.addItem("Surface Plot")
-	self.layout.addWidget(self.styleSelect,0,0)
+	subplotLabel = QLabel("Dimensions (w,h):")
+	self.subplotDimensions = QLineEdit()
+	self.subplotDimensions.returnPressed.connect(self.fillBoxes)
+	self.layout.addWidget(subplotLabel,0,0)
+	self.layout.addWidget(self.subplotDimensions,0,1)
 	self.setLayout(self.layout)
 	self.show()
 
     # Fills layout according to styleSelect selection
-    def initOptions(self):
-	if self.styleSelect.currentText() == "Trial Plot":
-	    self.dataBox = QComboBox()
-	    self.layout.addWidget(self.dataBox,0,1,Qt.AlignCenter)
+    def fillBoxes(self):
+	self.labels = {}
+	self.boxes = {}
+	self.args = self.subplotDimensions.text().split(",")
+	self.width = int(self.args[0])
+	self.height = int(self.args[1])
+	for x in range(self.width*self.height):
+	    self.mpl.adjustSubplots(self.width,self.height,x+1)
+	    self.labels[x] = QLabel("DataBox for subplot %i:" % (int(x)+1))
+	    self.boxes[x] = QComboBox()
+	    self.gui.fillDataBoxes(self,x)
+	    self.boxes[x].activated.connect(self.lambdaFunc(x))
+	    self.layout.addWidget(self.labels[x],(x*2)+1,0,Qt.AlignCenter)
+	    self.layout.addWidget(self.boxes[x],(x*2)+1,1,Qt.AlignCenter)
+	    self.layout.addWidget(QLabel(),(x*2)+2,0)
+	    self.layout.addWidget(QLabel(),(x*2)+2,1)
 
-	if self.styleSelect.currentText() == "Time Plot":
-	    self.dataBox = QComboBox()
+    def lambdaFunc(self,index):
+	return lambda : self.initOptions(index)
+
+    def initOptions(self,x):
+	if self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length2:
             self.trialSelect = QLineEdit("1")
 	    self.xRange = QLineEdit("x range")
-            self.trialSelect.textChanged.connect(self.changeTrial)
-            self.trialSelect.returnPressed.connect(self.gui.plot)
-	    self.layout.addWidget(self.dataBox,0,1,Qt.AlignCenter)
-            self.layout.addWidget(self.trialSelect,1,0,Qt.AlignCenter)
-	    self.layout.addWidget(self.xRange,1,1)
-
-	if self.styleSelect.currentText() == "Surface Plot":
+	    self.fillListRanges(self.gui.length1)
+            self.trialSelect.returnPressed.connect(self.changeTrial)
+            self.layout.addWidget(self.trialSelect,(x*3)+2,0,Qt.AlignCenter)
+	    self.layout.addWidget(self.xRange,(x*3)+2,1,Qt.AlignCenter)
+	elif self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length1:
+	    w1 = self.layout.itemAtPosition((x*2)+2,0)
+	    self.layout.removeWidget(w1.widget())
+	    w2 = self.layout.itemAtPosition((x*2)+2,1)
+	    self.layout.removeWidget(w2.widget())
+	    self.layout.addWidget(QLabel(),(x*2)+2,0)
+	    self.layout.addWidget(QLabel(),(x*2)+2,1)
+	"""
+	elif self.gui.fileLength(self.boxes[x].text()) == self.gui.length3:
             self.mpl.plt.cla()
             self.mpl.plt = self.mpl.figure.add_subplot(111, projection='3d')
             self.mpl.figure.canvas.draw()
@@ -42,30 +62,22 @@ class GraphParams(QWidget):
             self.zRange = QLineEdit("z range")
             self.zLabel.returnPressed.connect(self.gui.plot)
             self.zRange.returnPressed.connect(self.gui.plot)
-	    self.layout.addWidget(self.dataBox,0,1,Qt.AlignCenter)
-	    self.layout.addWidget(self.zLabel,1,0)
-	    self.layout.addWidget(self.zRange,1,1)
-
-        self.gui.fillDataBoxes()
+	    self.layout.addWidget(self.dataBox,1,0,Qt.AlignCenter)
+	    self.layout.addWidget(self.zLabel,2,0)
+	    self.layout.addWidget(self.zRange,2,1)
+	"""
 
     # Support method for Time Plot implementations
-    def changeTrial(self, steps=0, trials=0):
-        if self.xRange.text() == 'x range':
-            self.numSteps = steps
-            self.fillListRanges(trials)
-            self.xRange.setText(self.ranges[int(self.trialSelect.text())-1])
-        else:
-            try:
-                self.xRange.setText(self.ranges[int(self.trialSelect.text())-1])
-            except ValueError: pass
+    def changeTrial(self):
+	self.xRange.setText(self.ranges[int(self.trialSelect.text())-1])
 
     # Creates a list of ranges so changeTrial can operate
     def fillListRanges(self, trials):
         self.ranges = []
         start = 0
-        end = self.numSteps
+        end = self.gui.timeSteps
         for trial in range(trials):
             self.ranges.append(str(start)+'-'+str(end))
-            start += self.numSteps
-            end += self.numSteps
+            start += self.gui.timeSteps
+            end += self.gui.timeSteps
 

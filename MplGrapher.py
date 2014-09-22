@@ -1,5 +1,4 @@
 import sys
-import matplotlib.pyplot as plt
 import numpy as np
 from PySide.QtGui import *
 from PySide.QtCore import *
@@ -15,23 +14,27 @@ from math import floor, ceil
 
 # FigureCanvas to be embedded in PySide GUI
 class MplGrapher(QWidget):
-    def __init__(self,parent=None):
+    def __init__(self,gui,parent=None):
 	super(MplGrapher, self).__init__(parent)
 	self.initFigure()
+	self.gui = gui
 
     def initFigure(self):
 	self.figure = Figure()
 	self.canvas = FigureCanvas(self.figure)
-	self.plt = self.figure.add_subplot(111)
+	self.plotContainer = {}
 	self.navbar = NavigationToolbar(self.canvas,self)
 	self.layout = QVBoxLayout()
 	self.layout.addWidget(self.navbar)
 	self.layout.addWidget(self.canvas)
 	self.setLayout(self.layout)
 
+    def adjustSubplots(self,w,h,p):
+	self.plotContainer[p-1] = self.figure.add_subplot(w,h,p)
+
     # Sets up labels and axis' ranges
-    def setGraphParams(self,path,file_,xRange,zLabel,zRange):
-        self.plt.clear()
+    def setGraphParams(self,path,plot,file_,xRange,zLabel,zRange):
+        self.plotContainer[plot].clear()
 	if "\n" in path: # Used if opening from .sim
 	    _file = path[:-1]+"/"+file_[:-1]
 	    xRange = xRange[:-1]
@@ -42,22 +45,42 @@ class MplGrapher(QWidget):
 	if "none" in zLabel:
 	    with open(_file, 'r') as f:
 	       data = f.readlines()
-	    self.plt.plot(data, 'b-')
-	    x = xRange.split("-")
-	    try:
-		self.computeRanges(data, x, xRange)
-	    except AttributeError: pass
-	    except ValueError: pass
+	    data = self.stringToFloat(data)
+	    if len(data) == self.gui.length2:
+		x = xRange.split("-")
+		try:
+		    self.computeRanges(plot,data,x,xRange)
+		except AttributeError: pass
+		except ValueError: pass
+	    self.plotContainer[plot].plot(data, 'b-')
 	else:
-	    self.plot3D(_file,xRange,zLabel,zRange)
+	    self.plot3D(_file,plot,xRange,zLabel,zRange)
         try: self.figure.canvas.draw()
         except ValueError: pass
 
+    def computeRanges(self, plot, data, x, xRange):
+	try:
+	    if 'x range' in xRange:
+		self.plotContainer[plot].axis([0, self.gui.timeSteps,
+				    float(min(data)), float(max(data))])
+	    else:
+		self.plotContainer[plot].axis([floor(float(x[0])), ceil(float(x[1])),
+			  float(min(data)), float(max(data))])
+	except NameError:
+	    print "NameError"
+
+    def stringToFloat(self,batch):
+	newList = []
+	for string in batch:
+	    string = string.strip("\n")
+	    newList.append(float(string))
+	return newList
+
     # Until I can examine a working .c file that generates data, I won't be
     # able to abstract this functionality
-    def plot3D(self,file_,xRange,zLabel,zRange):
+    def plot3D(self,plot,file_,xRange,zLabel,zRange):
 	try:
-            _file = "/Users/aweeeezy/bin/ivry/instrumental_discrete/surface_plot/w_d1_A.txt"
+            _file = "/Users/aweeeezy/bin/ivry/surface_plot_test/w_d1_A.txt"
             with open(_file, 'r') as f:
                 data = f.readline()
             line  = data.split(' ')
@@ -68,22 +91,11 @@ class MplGrapher(QWidget):
             Y = np.arange(0,100)
             Z = np.reshape(data, (100,100))
             X,Y = np.meshgrid(X,Y)
-            self.plt.plot_surface(X,Y,Z,cmap=cm.jet)
-            self.plt.set_zlabel(zLabel)
+            self.plotContainer[plot].plot_surface(X,Y,Z,cmap=cm.jet)
+            self.plotContainer[plot].set_zlabel(zLabel)
             z = zRange.split("-")
 	except ValueError:
 	    print "this is that ValueError"
-
-    def computeRanges(self, data, x, xRange):
-	try:
-	    if 'x range' in xRange:
-		self.plt.axis([0, len(data), floor(float(min(data))),
-					      ceil(float(max(data)))])
-	    else:
-		self.plt.axis([floor(float(x[0])), ceil(float(x[1])),
-			  floor(float(min(data))), ceil(float(max(data)))])
-	except NameError:
-	    print "NameError"
 
     def getFig(self):
 	return self

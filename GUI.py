@@ -11,10 +11,14 @@ from GraphParams import GraphParams
 class GUI(QMainWindow):
     def __init__(self):
 	super(GUI, self).__init__()
+	#self.setIconSize(QSize(16,16))
 	self.w = QWidget()
 	self.setCentralWidget(self.w)
         self.opening = False
 	self.initUI()
+	self.saveFile()
+	self.genFuncBox()
+	self.run()
 
   ###			   ###
   ### Builds Simulator GUI ###
@@ -110,6 +114,7 @@ class GUI(QMainWindow):
 	    x = 1
 	    # Requires GUI interaction (graphing settings) prior to opening file
 	    # Populates proper fields of GraphParams with graphing values
+	    """
 	    for opt in self.opts:
                 self.filterDataFiles()
 		if self.opts[opt].styleSelect.currentText() == "Trial Plot":
@@ -122,13 +127,15 @@ class GUI(QMainWindow):
 		    self.opts[opt].dataBox.setEditText(self.graphValues[x]);x+=1
 		    self.opts[opt].zLabel.setEditText(self.graphValues[x]);x+=1
 		    self.opts[opt].zRange.setText(self.graphValues[x]);x+=1
+	    """
 	    self.plot()
             self.opening = False
 
     # Writes sim/graph values & data files to .sim (1.2)
     def saveFile(self):
-	self.filePath, _= QFileDialog.getSaveFileName(self, 'save file', \
-	     '~/', 'Simulations (*.sim)' )
+	#self.filePath, _= QFileDialog.getSaveFileName(self, 'save file', \
+	    # '~/', 'Simulations (*.sim)' )
+	self.filePath = "/Users/aweeeezy/bin/ivry/Test/untitled"
 	fileSplit = self.filePath.split("/")
 	self.dirPath = "/".join(fileSplit[:-1])
 	title = fileSplit[-1]
@@ -136,10 +143,11 @@ class GUI(QMainWindow):
 	# Doesn't yet grab condition values from self.runFuncs
 	self.simValues = [str(self.numCond.text()),str(self.numSim.text()),
 			str(self.numTrials.text()),str(self.numSteps.text()),
-				str(self.dirPath),str(self.numGraphs.text())]
+				str(self.dirPath)]
 	self.graphValues = []
 	# Grabs graphing values...each segment is prepended with a string
 	# denoting what type of GraphParams instance to populate to
+	"""
 	for opt in self.opts:
 	    if self.opts[opt].styleSelect.currentText() == "Trial Plot":
 		self.graphValues.append("Trial Plot")
@@ -153,6 +161,7 @@ class GUI(QMainWindow):
                 self.graphValues.append("Surface Plot")
                 self.graphValues.append(self.opts[opt].zLabel.text())
 		self.graphValues.append(self.opts[opt].zRange.text())
+	"""
 	with open(self.filePath, 'w') as f:
 	    for item in self.simValues:
 		f.write(str(item)+"\n")
@@ -160,8 +169,8 @@ class GUI(QMainWindow):
 	    for item in self.graphValues:
 		f.write(str(item)+"\n")
 	    f.write("\n")
-	    for item in self.files:
-		f.write(str(item)+"\n")
+#	    for item in self.files:
+#		f.write(str(item)+"\n")
 
     # Shows/hides the settings window (1.3)
     def collapse(self):
@@ -192,7 +201,10 @@ class GUI(QMainWindow):
 	    if extension == ".c":
 		self.runC()
 	    else:
-		cmd = ['/Users/aweeeezy/bin/ivry/Simulator/a.out']
+		if self.coreFunc.text() == "coreFunc2":
+		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFunc1']
+		if self.coreFunc.text() == "coreFunc1":
+		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFunc2']
 		cmd.append(str(self.dirPath)+'/')
 		self.execArgs = [str(self.numCond.text()),str(self.numSim.text()),
 				str(self.numTrials.text()),str(self.numSteps.text())]
@@ -237,60 +249,22 @@ class GUI(QMainWindow):
 	for _file in copy:
 	    if "." in _file:
 		self.files.remove(_file)
-	# If dataBox (first) is empty, categorize files by length
-	# If !empty, user reselected a different # of graphs to add
-	# so recategoriztion is not necessary
-	if self.opts["Fig1"].dataBox.count() == 0:
-	    self.dataLengths = []
-	    for _file in self.files:
-		with open(self.dirPath+'/'+_file) as f:
-		    data = f.readlines()
-		    print "Length of",_file,"is",len(data)
-		    if len(data) != 0:
-			self.dataLengths.append(len(data))
-	    # These 3 *should* work; but, for reasons further down the
-	    # line, they may not (see README for details)
-	    self.dataLength_1 = min(self.dataLengths)
-	    self.dataLength_2 = max(self.dataLengths)
-	    self.timeSteps = self.dataLength_2/self.dataLength_1
-	    #self.dataLengths_1 = int(self.numTrials.text())*int(self.numCond.text())
-	    #self.dataLengths_2 = int(self.numSteps.text())*int(self.dataLengths_1)
-	    #self.timeSteps = int(self.numSteps.text())
-	    self.trialData = []
-	    self.timeStepData = []
-	    for _file in self.files:
-		print "opening", _file
-		with open(self.dirPath+'/'+_file) as f:
-		    data = f.readlines()
-		if len(data) == self.dataLength_1:
-		    print "\tputting data in trialData"
-		    self.trialData.append(_file)
-		elif len(data) == self.dataLength_2:
-		    print "\tputting data in timeStepData"
-		    self.timeStepData.append(_file)
-	    self.fillDataBoxes()
+	self.length1 = int(self.numTrials.text())
+	self.length2 = int(self.numSteps.text())*int(self.length1)
+	self.timeSteps = int(self.numSteps.text())
 
-    # Fills dataBoxes w/ files (size based) according to styleSelect (1.5.4)
-    def fillDataBoxes(self):
+    def fileLength(self,_file):
+	with open(self.dirPath+'/'+_file) as f:
+	    data = f.readlines()
+	return len(data)
+
+    # Fills dataBoxes w/ files (size based) (1.5.4)
+    def fillDataBoxes(self,fig,subplotNum):
         try:
-            for fig in self.opts:
-                if self.opts[fig].styleSelect.currentText() == 'Trial Plot':
-                    self.console.insertPlainText("\n\nAdding to dataBox:\n\t"+\
-                    '\n\t'.join('%s' % (x) for x in self.trialData))
-                    self.opts[fig].dataBox.addItems(self.trialData)
-                elif self.opts[fig].styleSelect.currentText() == 'Time Plot':
-                    self.console.insertPlainText("\n\nAdding to dataBox:\n\t"+\
-                    '\n\t'.join('%s' % (x) for x in self.timeStepData))
-                    self.opts[fig].dataBox.addItems(self.timeStepData)
-                    self.opts[fig].changeTrial(steps=self.timeSteps,\
-                                                       trials=self.dataLength_1)
-		# Until I get a better feel for how suface plot data will be
-		# structured, this adds all files to surface plot dataBox
-                elif self.opts[fig].styleSelect.currentText() == 'Surface Plot':
-                    self.opts[fig].dataBox.addItems(self.files)
+	    dataBox = fig.boxes[subplotNum]
+	    dataBox.addItems(self.files)
         except AttributeError:
 	    self.console.insertPlainText("Double check inputs & save file first.\n")
-
 
   ###					     ###
   ### (2) Labels/layouts for setting options ###
@@ -298,7 +272,6 @@ class GUI(QMainWindow):
 
     def optionsInit(self):
 	# Layout for simulator widgets (2.2)
-	#self.simOptions = QStackedWidget()
 	self.simOptions = QWidget()
 	self.simOptLayout = QGridLayout()
 	self.loopParams1 = QWidget()
@@ -316,7 +289,7 @@ class GUI(QMainWindow):
 	numSim = QLabel("Simulations:")
 	numTrials =  QLabel("Trials:")
 	numSteps =  QLabel("Steps:")
-	self.numCond = QLineEdit()
+	self.numCond = QLineEdit("1")
 	self.numCond.returnPressed.connect(self.genFuncBox)
 	self.numSim = QLineEdit("1")
 	self.numTrials = QLineEdit("300")
@@ -454,8 +427,6 @@ class GUI(QMainWindow):
 	self.initParamSettings.addWidget(self.LTD_tan,25,1)
 	self.initParams1.setLayout(self.initParamSettings)
 
-	#self.simOptions.addWidget(self.loopParams1)
-	#self.simOptions.addWidget(self.initParams1)
 	self.toolbar = QToolBar()
 	self.paramsButton = QPushButton("initParams/loopParams")
 	self.coreFunc = QPushButton("coreFunc2")
@@ -475,18 +446,27 @@ class GUI(QMainWindow):
 	self.graphOptions.setVisible(False)
 	graphingSettings = QGridLayout()
 	graphTitle = QLabel("<font size=6>Graphing Settings</font>")
-	numGraphs = QLabel("Plots:")
-	self.numGraphs = QLineEdit("1")
-	self.numGraphs.textChanged.connect(self.addGraphOptions)
 	self.displayedGraph = QComboBox()
 	self.displayedGraph.currentIndexChanged.connect(self.changePlot)
 	self.graphParams = QStackedWidget()
+	addFigureButton = QPushButton("Add Figure")
+	addFigureButton.pressed.connect(self.addGraphOptions)
+	removeFigures = QPushButton("Remove All")
+	removeFigures.pressed.connect(self.initFigs)
 	graphingSettings.addWidget(graphTitle,0,0,1,2,Qt.AlignCenter)
-	graphingSettings.addWidget(self.displayedGraph,1,1)
-	graphingSettings.addWidget(numGraphs,2,0)
-	graphingSettings.addWidget(self.numGraphs,2,1)
+	graphingSettings.addWidget(removeFigures,1,0)
+	graphingSettings.addWidget(addFigureButton,2,0)
+	graphingSettings.addWidget(self.displayedGraph,2,1)
 	graphingSettings.addWidget(self.graphParams,3,0,1,2,Qt.AlignCenter)
 	self.graphOptions.setLayout(graphingSettings)
+	self.initFigs()
+
+    def initFigs(self):
+	self.displayedGraph.clear()
+	self.displayedGraph.addItem("Console")
+	self.plots = {}
+	self.opts = {}
+	self.figCount = 0
 
     # Creates paired QComboBoxes with connected clear QPushButton (2.2.1)
     def genFuncBox(self):
@@ -500,6 +480,9 @@ class GUI(QMainWindow):
 			"simulate_reacquisition_2","simulate_reacquisition_8")
 	    self.possibleFuncsMap[x].addItems(funcs)
 	    self.possibleFuncsMap[x].activated.connect(self.pairComboBoxes(x))
+	    ###
+	    self.selectedFuncsMap[0].addItem(self.possibleFuncsMap[0].currentText())
+	    ###
 	    self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
 	    self.loopSettings.addWidget(self.possibleFuncsMap[x],x+6,0)
 	    self.loopSettings.addWidget(self.selectedFuncsMap[x],x+6,1)
@@ -551,36 +534,23 @@ class GUI(QMainWindow):
 
     # (2.3) Builds graphing option layout (GraphParams) for each plot
     def addGraphOptions(self):
-	self.plots = {}
-	self.opts = {}
-	self.displayedGraph.clear()
-	self.displayedGraph.addItem("Console")
-	for x in range(int(self.numGraphs.text())):
-	    _next = "Fig"+str(x+1)
-	    graphInstance = MplGrapher()
-	    paramsInstance = GraphParams(self,graphInstance)
-	    self.plots[_next] = graphInstance
-	    self.opts[_next] = paramsInstance
-            if self.opening == True:
-                value = self.graphValues.pop(1)
-                self.opts[_next].styleSelect.setEditText(value)
-	    else:
-                self.opts[_next].styleSelect.setCurrentIndex(0)
-	    self.displayedGraph.addItem(_next)
-	    self.display.addWidget(graphInstance.getFig())
-	    self.graphParams.addWidget(paramsInstance)
-	self.displayedGraph.setCurrentIndex(0)
-	# May be redundant...just call fillDataBoxes()?
-        try:
-            for fig in self.opts:
-                if self.opts[fig].styleSelect.currentText() == 'Trial Plot':
-                    self.opts[fig].dataBox.addItems(self.trialData)
-                elif self.opts[fig].styleSelect.currentText() == 'Time Plot':
-                    self.opts[fig].dataBox.addItems(self.timeStepData)
-                elif self.opts[fig].styleSelect.currentText() == 'Surface Plot':
-                    self.opts[fig].dataBox.addItems(self.files)
-        except AttributeError:
-            self.console.insertPlainText("Run the simulation to fill dataBox")
+	#for x in range(int(self.numGraphs.text())):
+	self.figCount+=1
+	_next = "Fig"+str(self.figCount)
+	graphInstance = MplGrapher(self)
+	paramsInstance = GraphParams(self,graphInstance)
+	self.plots[_next] = graphInstance
+	self.opts[_next] = paramsInstance
+	if self.opening == True:
+	    value = self.graphValues.pop(1)
+	    #self.opts[_next].styleSelect.setEditText(value)
+	else:
+	    pass
+	    #self.opts[_next].styleSelect.setCurrentIndex(0)
+	self.displayedGraph.addItem(_next)
+	self.display.addWidget(graphInstance.getFig())
+	self.graphParams.addWidget(paramsInstance)
+	self.displayedGraph.setCurrentIndex(self.figCount)
 
     # (2.4) Generate plots from MplGrapher instances
     def plot(self):
@@ -589,22 +559,27 @@ class GUI(QMainWindow):
         zLabel = []
         zRange = []
 	for fig in self.opts:
-	    data.append(str(self.opts[fig].dataBox.currentText()))
-	    try:
-		xRange.append(str(self.opts[fig].xRange.text()))
-	    except AttributeError:
-		xRange.append("none")
-            try:
-                zLabel.append(str(self.opts[fig].zLabel.text()))
-                zRange.append(str(self.opts[fig].zRange.text()))
-            except AttributeError:
-                zLabel.append("none")
-                zRange.append("none")
+	    for x in range(self.opts[fig].width*self.opts[fig].height):
+		data.append(str(self.opts[fig].boxes[x].currentText()))
+		try:
+		    xRange.append(str(self.opts[fig].xRange.text()))
+		except AttributeError:
+		    xRange.append("none")
+		try:
+		    zLabel.append(str(self.opts[fig].zLabel.text()))
+		    zRange.append(str(self.opts[fig].zRange.text()))
+		except AttributeError:
+		    zLabel.append("none")
+		    zRange.append("none")
 
-	for i,figure in enumerate(self.plots):
+	n = 0
+	for i,figure in enumerate(self.plots): # each figure
 	    try:
-		self.plots[figure].setGraphParams(self.dirPath, data[i], \
-						xRange[i],zLabel[i],zRange[i]);
+		# each plot inside a figure
+		for x in range(self.opts[figure].width*self.opts[figure].height):
+		    self.plots[figure].setGraphParams(self.dirPath,x,
+			    data[i+x+n],xRange[i+x+n],zLabel[i+x+n],zRange[i+x+n]);
+		n += 1
 	    except AttributeError: print "GUI: setGraphParams exception"
 
     # (2.5) Sets widget to displayedGraph & graphParams to paramsInstans
@@ -650,7 +625,6 @@ class GUI(QMainWindow):
 	self.console.ensureCursorVisible()
 	self.console.append("Console display\n")
 	self.display.addWidget(self.console)
-	self.displayedGraph.addItem("Console")
 
 
 
