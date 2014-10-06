@@ -8,6 +8,8 @@ class GraphParams(QWidget):
         self.mpl = mpl
         self.gui = gui
 	self.layout = QGridLayout()
+	self.trialSelects = {}
+	self.xRanges = {}
 	subplotLabel = QLabel("Dimensions (w,h):")
 	self.subplotDimensions = QLineEdit()
 	self.subplotDimensions.returnPressed.connect(self.fillBoxes)
@@ -37,14 +39,18 @@ class GraphParams(QWidget):
     def lambdaFunc(self,index):
 	return lambda : self.initOptions(index)
 
+    def otherLambda(self, index):
+	return lambda : self.changeTrial(index)
+
     def initOptions(self,x):
 	if self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length2:
-            self.trialSelect = QLineEdit("1")
-	    self.xRange = QLineEdit("x range")
+            self.trialSelects[x] = QLineEdit("Enter trial #")
+	    self.xRanges[x] = QLineEdit("x range")
 	    self.fillListRanges(self.gui.length1)
-            self.trialSelect.returnPressed.connect(self.changeTrial)
-            self.layout.addWidget(self.trialSelect,(x*3)+2,0,Qt.AlignCenter)
-	    self.layout.addWidget(self.xRange,(x*3)+2,1,Qt.AlignCenter)
+            #self.trialSelect.returnPressed.connect(self.changeTrial)
+            self.trialSelects[x].returnPressed.connect(self.otherLambda(x))
+            self.layout.addWidget(self.trialSelects[x],(x*2)+2,0,Qt.AlignCenter)
+	    self.layout.addWidget(self.xRanges[x],(x*2)+2,1,Qt.AlignCenter)
 	elif self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length1:
 	    w1 = self.layout.itemAtPosition((x*2)+2,0)
 	    self.layout.removeWidget(w1.widget())
@@ -53,7 +59,7 @@ class GraphParams(QWidget):
 	    self.layout.addWidget(QLabel(),(x*2)+2,0)
 	    self.layout.addWidget(QLabel(),(x*2)+2,1)
 	"""
-	elif self.gui.fileLength(self.boxes[x].text()) == self.gui.length3:
+	elif self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length3:
             self.mpl.plt.cla()
             self.mpl.plt = self.mpl.figure.add_subplot(111, projection='3d')
             self.mpl.figure.canvas.draw()
@@ -62,14 +68,13 @@ class GraphParams(QWidget):
             self.zRange = QLineEdit("z range")
             self.zLabel.returnPressed.connect(self.gui.plot)
             self.zRange.returnPressed.connect(self.gui.plot)
-	    self.layout.addWidget(self.dataBox,1,0,Qt.AlignCenter)
-	    self.layout.addWidget(self.zLabel,2,0)
+	    self.layout.addWidget(self.dataBox,1,0,Qt.AlignCenter) self.layout.addWidget(self.zLabel,2,0)
 	    self.layout.addWidget(self.zRange,2,1)
 	"""
 
     # Support method for Time Plot implementations
-    def changeTrial(self):
-	self.xRange.setText(self.ranges[int(self.trialSelect.text())-1])
+    def changeTrial(self,x):
+	self.xRanges[x].setText(self.ranges[int(self.trialSelects[x].text())-1])
 
     # Creates a list of ranges so changeTrial can operate
     def fillListRanges(self, trials):

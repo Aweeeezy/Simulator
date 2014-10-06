@@ -17,7 +17,7 @@ class GUI(QMainWindow):
         self.opening = False
 	self.initUI()
 	self.saveFile()
-	self.genFuncBox()
+	self.genFuncBox("coreFunc2")
 	self.run()
 
   ###			   ###
@@ -202,9 +202,9 @@ class GUI(QMainWindow):
 		self.runC()
 	    else:
 		if self.coreFunc.text() == "coreFunc2":
-		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFunc1']
+		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFuncTrials']
 		if self.coreFunc.text() == "coreFunc1":
-		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFunc2']
+		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFuncNoTrials']
 		cmd.append(str(self.dirPath)+'/')
 		self.execArgs = [str(self.numCond.text()),str(self.numSim.text()),
 				str(self.numTrials.text()),str(self.numSteps.text())]
@@ -281,19 +281,22 @@ class GUI(QMainWindow):
 	self.initParams1.setVisible(False)
 	self.loopParams2.setVisible(False)
 	self.initParams2.setVisible(False)
+	self.coreFunc = QPushButton("coreFunc2")
 
-	# Loop settings
+	# Loop settings for first coreFunc
 	self.loopSettings = QGridLayout()
-	loopTitle = QLabel("<font size=6>Loop Parameters</font>")
-	numConditions = QLabel("Conditions:")
-	numSim = QLabel("Simulations:")
-	numTrials =  QLabel("Trials:")
-	numSteps =  QLabel("Steps:")
+	loopTitle = QLabel("<font size=6><b>Loop Parameters</b></font>")
+	numConditions = QLabel("<b>Conditions:</b>")
+	numSim = QLabel("<b>Simulations:</b>")
+	numTrials =  QLabel("<b>Trials:</b>")
+	numSteps =  QLabel("<b>Steps:</b>")
 	self.numCond = QLineEdit("1")
-	self.numCond.returnPressed.connect(self.genFuncBox)
+	self.numCond.returnPressed.connect(self.lambdaGenFuncBox(self.coreFunc.text()))
 	self.numSim = QLineEdit("1")
 	self.numTrials = QLineEdit("300")
 	self.numSteps = QLineEdit("3000")
+	label1 = QLabel("<b>Possible Functions</b>")
+	label2 = QLabel("<b>Selected Functions</b>")
 
 	self.possibleFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
 	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
@@ -308,9 +311,39 @@ class GUI(QMainWindow):
 	self.loopSettings.addWidget(self.numSim,2,1,1,2)
 	self.loopSettings.addWidget(self.numTrials,3,1,1,2)
 	self.loopSettings.addWidget(self.numSteps,4,1,1,2)
+	self.loopSettings.addWidget(label1,5,0)
+	self.loopSettings.addWidget(label2,5,1)
 	self.loopParams1.setLayout(self.loopSettings)
 
-	# Optional initialization parameters
+	# Loop settings for second coreFunc
+	self.loopSettings2 = QGridLayout()
+	loopTitle2 = QLabel("<font size=6><b>Loop Parameters</b></font>")
+	numConditions2 = QLabel("<b>Conditions:</b>")
+	numSim2 = QLabel("<b>Simulations:</b>")
+	numSteps2 =  QLabel("<b>Steps:</b>")
+	self.numCond2 = QLineEdit("1")
+	self.numCond2.returnPressed.connect(self.lambdaGenFuncBox(self.coreFunc.text()))
+	self.numSim2 = QLineEdit("1")
+	self.numSteps2 = QLineEdit("3000")
+	label3 = QLabel("<b>Possible Functions</b>")
+	label4 = QLabel("<b>Selected Functions</b>")
+
+	self.possibleFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
+	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
+	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
+
+	self.loopSettings2.addWidget(loopTitle2,0,0,1,2,Qt.AlignCenter)
+	self.loopSettings2.addWidget(numConditions2,1,0)
+	self.loopSettings2.addWidget(numSim2,2,0)
+	self.loopSettings2.addWidget(numSteps2,3,0)
+	self.loopSettings2.addWidget(self.numCond2,1,1,1,2)
+	self.loopSettings2.addWidget(self.numSim2,2,1,1,2)
+	self.loopSettings2.addWidget(self.numSteps2,3,1,1,2)
+	self.loopSettings2.addWidget(label3,4,0)
+	self.loopSettings2.addWidget(label4,4,1)
+	self.loopParams2.setLayout(self.loopSettings2)
+
+	# Optional initialization parameters for first coreFunc
 	self.initParamSettings = QGridLayout()
 	paramTitle = QLabel("<font size=6>Initialization Parameters</font>")
 	checkBox = QLabel("Use custom init params:")
@@ -429,7 +462,6 @@ class GUI(QMainWindow):
 
 	self.toolbar = QToolBar()
 	self.paramsButton = QPushButton("initParams/loopParams")
-	self.coreFunc = QPushButton("coreFunc2")
 	self.paramsButton.pressed.connect(self.switchSettings)
 	self.coreFunc.pressed.connect(self.switchCoreFuncs)
 	self.toolbar.addWidget(self.paramsButton)
@@ -440,6 +472,8 @@ class GUI(QMainWindow):
 	self.simOptLayout.addWidget(self.loopParams2,1,0)
 	self.simOptLayout.addWidget(self.initParams2,1,0)
 	self.simOptions.setLayout(self.simOptLayout)
+
+	# Optional initialization parameters for second coreFunc
 
 	# Layout for graphing widgets (2.1)
 	self.graphOptions = QWidget()
@@ -469,14 +503,13 @@ class GUI(QMainWindow):
 	self.figCount = 0
 
     # Creates paired QComboBoxes with connected clear QPushButton (2.2.1)
-    def genFuncBox(self):
+    def genFuncBox(self,coreFuncText):
 	for x in range(int(self.numCond.text())):
 	    self.possibleFuncsMap[x] = QComboBox()
 	    self.selectedFuncsMap[x] = QComboBox()
 	    self.clearFuncs[x] = QPushButton("Clear")
 	    funcs = ("simulate_acquisition_full","simulate_acquisition_partial",\
-			"simulate_acquisition","simulate_extinction",\
-			"simulate_extinction_ext","simulate_extinction_prf",\
+			"simulate_extinction","simulate_extinction_prf",\
 			"simulate_reacquisition_2","simulate_reacquisition_8")
 	    self.possibleFuncsMap[x].addItems(funcs)
 	    self.possibleFuncsMap[x].activated.connect(self.pairComboBoxes(x))
@@ -484,9 +517,17 @@ class GUI(QMainWindow):
 	    self.selectedFuncsMap[0].addItem(self.possibleFuncsMap[0].currentText())
 	    ###
 	    self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
-	    self.loopSettings.addWidget(self.possibleFuncsMap[x],x+6,0)
-	    self.loopSettings.addWidget(self.selectedFuncsMap[x],x+6,1)
-	    self.loopSettings.addWidget(self.clearFuncs[x],x+6,2)
+	    if coreFuncText == "coreFunc2":
+		self.loopSettings.addWidget(self.possibleFuncsMap[x],x+7,0)
+		self.loopSettings.addWidget(self.selectedFuncsMap[x],x+7,1)
+		self.loopSettings.addWidget(self.clearFuncs[x],x+7,2)
+	    elif coreFuncText == "coreFunc1":
+		self.loopSettings2.addWidget(self.possibleFuncsMap[x],x+7,0)
+		self.loopSettings2.addWidget(self.selectedFuncsMap[x],x+7,1)
+		self.loopSettings2.addWidget(self.clearFuncs[x],x+7,2)
+
+    def lambdaGenFuncBox(self, coreFuncText):
+	return lambda : self.genFuncBox(coreFuncText)
 
     # Helper functions
     def pairComboBoxes(self,index):
@@ -562,7 +603,7 @@ class GUI(QMainWindow):
 	    for x in range(self.opts[fig].width*self.opts[fig].height):
 		data.append(str(self.opts[fig].boxes[x].currentText()))
 		try:
-		    xRange.append(str(self.opts[fig].xRange.text()))
+		    xRange.append(str(self.opts[fig].xRanges[x].text()))
 		except AttributeError:
 		    xRange.append("none")
 		try:
@@ -595,7 +636,9 @@ class GUI(QMainWindow):
 	    self.graphParams.setCurrentWidget(paramsObj)
 	else:
 	    self.graphParams.setVisible(False)
-	    self.display.setCurrentWidget(self.console)
+	    try:
+		self.display.setCurrentWidget(self.console)
+	    except AttributeError: pass
 
     # (2.6) Cycles plots
     def cyclePlot(self):
