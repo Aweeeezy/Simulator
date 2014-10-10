@@ -11,15 +11,15 @@ from GraphParams import GraphParams
 class GUI(QMainWindow):
     def __init__(self):
 	super(GUI, self).__init__()
-	#self.setIconSize(QSize(16,16))
 	self.w = QWidget()
 	self.setCentralWidget(self.w)
         self.opening = False
 	self.initUI()
-	self.saveFile()
-	self.genFuncBox("coreFunc2")
-	self.run()
-
+    ## Test code -- un-comment line 136/7 and remove line 517
+    	self.saveFile()
+    	self.genFuncBox("coreFuncNoTrials")
+    	self.run()
+    ##
   ###			   ###
   ### Builds Simulator GUI ###
   ###			   ###
@@ -134,8 +134,8 @@ class GUI(QMainWindow):
     # Writes sim/graph values & data files to .sim (1.2)
     def saveFile(self):
 	#self.filePath, _= QFileDialog.getSaveFileName(self, 'save file', \
-	    # '~/', 'Simulations (*.sim)' )
-	self.filePath = "/Users/aweeeezy/bin/ivry/Test/untitled"
+	     #'~/', 'Simulations (*.sim)' )
+	self.filePath = "/Users/aweeeezy/bin/ivry/Test/Untitled"
 	fileSplit = self.filePath.split("/")
 	self.dirPath = "/".join(fileSplit[:-1])
 	title = fileSplit[-1]
@@ -201,9 +201,9 @@ class GUI(QMainWindow):
 	    if extension == ".c":
 		self.runC()
 	    else:
-		if self.coreFunc.text() == "coreFunc2":
+		if self.coreFunc.text() == "coreFuncNoTrials":
 		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFuncTrials']
-		if self.coreFunc.text() == "coreFunc1":
+		if self.coreFunc.text() == "coreFuncTrials":
 		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFuncNoTrials']
 		cmd.append(str(self.dirPath)+'/')
 		self.execArgs = [str(self.numCond.text()),str(self.numSim.text()),
@@ -249,7 +249,7 @@ class GUI(QMainWindow):
 	for _file in copy:
 	    if "." in _file:
 		self.files.remove(_file)
-	self.length1 = int(self.numTrials.text())
+	self.length1 = int(self.numTrials.text())*int(self.numCond.text())
 	self.length2 = int(self.numSteps.text())*int(self.length1)
 	self.timeSteps = int(self.numSteps.text())
 
@@ -262,7 +262,14 @@ class GUI(QMainWindow):
     def fillDataBoxes(self,fig,subplotNum):
         try:
 	    dataBox = fig.boxes[subplotNum]
-	    dataBox.addItems(self.files)
+	    if self.dimensionButton.text() == "2D Plot":
+		for f in self.files:
+		    with open(self.dirPath+'/'+f, 'r') as fi:
+			data = fi.readlines()
+			if len(data) == self.length2:
+			    dataBox.addItem(f)
+	    else:
+		dataBox.addItems(self.files)
         except AttributeError:
 	    self.console.insertPlainText("Double check inputs & save file first.\n")
 
@@ -281,12 +288,12 @@ class GUI(QMainWindow):
 	self.initParams1.setVisible(False)
 	self.loopParams2.setVisible(False)
 	self.initParams2.setVisible(False)
-	self.coreFunc = QPushButton("coreFunc2")
+	self.coreFunc = QPushButton("coreFuncNoTrials")
 
 	# Loop settings for first coreFunc
 	self.loopSettings = QGridLayout()
 	loopTitle = QLabel("<font size=6><b>Loop Parameters</b></font>")
-	numConditions = QLabel("<b>Conditions:</b>")
+	numConditions = QLabel("<b>Conditions: (press enter)</b>")
 	numSim = QLabel("<b>Simulations:</b>")
 	numTrials =  QLabel("<b>Trials:</b>")
 	numSteps =  QLabel("<b>Steps:</b>")
@@ -295,10 +302,10 @@ class GUI(QMainWindow):
 	self.numSim = QLineEdit("1")
 	self.numTrials = QLineEdit("300")
 	self.numSteps = QLineEdit("3000")
-	label1 = QLabel("<b>Possible Functions</b>")
-	label2 = QLabel("<b>Selected Functions</b>")
+	label1 = QLabel("<b>Available functions</b>")
+	label2 = QLabel("<b>Functions to simulate</b>")
 
-	self.possibleFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
+	self.availableFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
 	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
 	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
 
@@ -318,17 +325,17 @@ class GUI(QMainWindow):
 	# Loop settings for second coreFunc
 	self.loopSettings2 = QGridLayout()
 	loopTitle2 = QLabel("<font size=6><b>Loop Parameters</b></font>")
-	numConditions2 = QLabel("<b>Conditions:</b>")
+	numConditions2 = QLabel("<b>Conditions: (press enter)</b>")
 	numSim2 = QLabel("<b>Simulations:</b>")
 	numSteps2 =  QLabel("<b>Steps:</b>")
 	self.numCond2 = QLineEdit("1")
 	self.numCond2.returnPressed.connect(self.lambdaGenFuncBox(self.coreFunc.text()))
 	self.numSim2 = QLineEdit("1")
 	self.numSteps2 = QLineEdit("3000")
-	label3 = QLabel("<b>Possible Functions</b>")
-	label4 = QLabel("<b>Selected Functions</b>")
+	label3 = QLabel("<b>Available functions</b>")
+	label4 = QLabel("<b>Functions to simulate</b>")
 
-	self.possibleFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
+	self.availableFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
 	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
 	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
 
@@ -460,13 +467,13 @@ class GUI(QMainWindow):
 	self.initParamSettings.addWidget(self.LTD_tan,25,1)
 	self.initParams1.setLayout(self.initParamSettings)
 
-	self.toolbar = QToolBar()
+	simButtons = QToolBar()
 	self.paramsButton = QPushButton("initParams/loopParams")
 	self.paramsButton.pressed.connect(self.switchSettings)
 	self.coreFunc.pressed.connect(self.switchCoreFuncs)
-	self.toolbar.addWidget(self.paramsButton)
-	self.toolbar.addWidget(self.coreFunc)
-	self.simOptLayout.addWidget(self.toolbar,0,0)
+	simButtons.addWidget(self.paramsButton)
+	simButtons.addWidget(self.coreFunc)
+	self.simOptLayout.addWidget(simButtons,0,0)
 	self.simOptLayout.addWidget(self.loopParams1,1,0)
 	self.simOptLayout.addWidget(self.initParams1,1,0)
 	self.simOptLayout.addWidget(self.loopParams2,1,0)
@@ -483,13 +490,18 @@ class GUI(QMainWindow):
 	self.displayedGraph = QComboBox()
 	self.displayedGraph.currentIndexChanged.connect(self.changePlot)
 	self.graphParams = QStackedWidget()
+	graphButtons = QToolBar()
 	addFigureButton = QPushButton("Add Figure")
 	addFigureButton.pressed.connect(self.addGraphOptions)
 	removeFigures = QPushButton("Remove All")
 	removeFigures.pressed.connect(self.initFigs)
-	graphingSettings.addWidget(graphTitle,0,0,1,2,Qt.AlignCenter)
-	graphingSettings.addWidget(removeFigures,1,0)
-	graphingSettings.addWidget(addFigureButton,2,0)
+	self.dimensionButton = QPushButton("3D Plot")
+	self.dimensionButton.pressed.connect(self.switchPlot)
+	graphButtons.addWidget(addFigureButton)
+	graphButtons.addWidget(removeFigures)
+	graphButtons.addWidget(self.dimensionButton)
+	graphingSettings.addWidget(graphButtons,0,0)
+	graphingSettings.addWidget(graphTitle,1,0,1,2,Qt.AlignCenter)
 	graphingSettings.addWidget(self.displayedGraph,2,1)
 	graphingSettings.addWidget(self.graphParams,3,0,1,2,Qt.AlignCenter)
 	self.graphOptions.setLayout(graphingSettings)
@@ -505,24 +517,24 @@ class GUI(QMainWindow):
     # Creates paired QComboBoxes with connected clear QPushButton (2.2.1)
     def genFuncBox(self,coreFuncText):
 	for x in range(int(self.numCond.text())):
-	    self.possibleFuncsMap[x] = QComboBox()
+	    self.availableFuncsMap[x] = QComboBox()
 	    self.selectedFuncsMap[x] = QComboBox()
 	    self.clearFuncs[x] = QPushButton("Clear")
 	    funcs = ("simulate_acquisition_full","simulate_acquisition_partial",\
 			"simulate_extinction","simulate_extinction_prf",\
 			"simulate_reacquisition_2","simulate_reacquisition_8")
-	    self.possibleFuncsMap[x].addItems(funcs)
-	    self.possibleFuncsMap[x].activated.connect(self.pairComboBoxes(x))
+	    self.availableFuncsMap[x].addItems(funcs)
+	    self.availableFuncsMap[x].activated.connect(self.pairComboBoxes(x))
 	    ###
-	    self.selectedFuncsMap[0].addItem(self.possibleFuncsMap[0].currentText())
+	    self.selectedFuncsMap[0].addItem(self.availableFuncsMap[0].currentText())
 	    ###
 	    self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
-	    if coreFuncText == "coreFunc2":
-		self.loopSettings.addWidget(self.possibleFuncsMap[x],x+7,0)
+	    if coreFuncText == "coreFuncNoTrials":
+		self.loopSettings.addWidget(self.availableFuncsMap[x],x+7,0)
 		self.loopSettings.addWidget(self.selectedFuncsMap[x],x+7,1)
 		self.loopSettings.addWidget(self.clearFuncs[x],x+7,2)
-	    elif coreFuncText == "coreFunc1":
-		self.loopSettings2.addWidget(self.possibleFuncsMap[x],x+7,0)
+	    elif coreFuncText == "coreFuncTrials":
+		self.loopSettings2.addWidget(self.availableFuncsMap[x],x+7,0)
 		self.loopSettings2.addWidget(self.selectedFuncsMap[x],x+7,1)
 		self.loopSettings2.addWidget(self.clearFuncs[x],x+7,2)
 
@@ -535,7 +547,7 @@ class GUI(QMainWindow):
 
     def addTrialFunc(self,index):
 	self.selectedFuncsMap[index].addItem(
-				self.possibleFuncsMap[index].currentText())
+				self.availableFuncsMap[index].currentText())
 
     def pairClearButton(self,index):
 	return lambda : self.clearBox(index)
@@ -544,14 +556,14 @@ class GUI(QMainWindow):
 	self.selectedFuncsMap[index].clear()
 
     def switchSettings(self):
-	if self.coreFunc.text() == "coreFunc1":
+	if self.coreFunc.text() == "coreFuncTrials":
 	    if self.loopParams2.isVisible() == True:
 		self.loopParams2.setVisible(False)
 		self.initParams2.setVisible(True)
 	    else:
 		self.loopParams2.setVisible(True)
 		self.initParams2.setVisible(False)
-	elif self.coreFunc.text() == "coreFunc2":
+	elif self.coreFunc.text() == "coreFuncNoTrials":
 	    if self.loopParams1.isVisible() == True:
 		self.loopParams1.setVisible(False)
 		self.initParams1.setVisible(True)
@@ -560,26 +572,33 @@ class GUI(QMainWindow):
 		self.initParams1.setVisible(False)
 
     def switchCoreFuncs(self):
-	if self.coreFunc.text() == "coreFunc2":
+	if self.coreFunc.text() == "coreFuncNoTrials":
 	    self.loopParams1.setVisible(False)
 	    self.initParams1.setVisible(False)
 	    self.loopParams2.setVisible(True)
-	    self.initParams2.setVisible(True)
-	    self.coreFunc.setText("coreFunc1")
-	elif self.coreFunc.text() == "coreFunc1":
+	    self.coreFunc.setText("coreFuncTrials")
+	elif self.coreFunc.text() == "coreFuncTrials":
 	    self.loopParams2.setVisible(False)
 	    self.initParams2.setVisible(False)
 	    self.loopParams1.setVisible(True)
-	    self.initParams1.setVisible(True)
-	    self.coreFunc.setText("coreFunc2")
+	    self.coreFunc.setText("coreFuncNoTrials")
+
+    def switchPlot(self):
+	if self.dimensionButton.text() == "3D Plot":
+	    self.dimensionButton.setText("2D Plot")
+	else:
+	    self.dimensionButton.setText("3D Plot")
 
     # (2.3) Builds graphing option layout (GraphParams) for each plot
     def addGraphOptions(self):
-	#for x in range(int(self.numGraphs.text())):
 	self.figCount+=1
 	_next = "Fig"+str(self.figCount)
 	graphInstance = MplGrapher(self)
+	#if dimensionButton.text() == "2D Plots":
+	    #paramsInstance = GraphParams(self,graphInstance,d=3)
 	paramsInstance = GraphParams(self,graphInstance)
+	#else:
+	    #paramsInstance = GraphParams(self,graphInstance)
 	self.plots[_next] = graphInstance
 	self.opts[_next] = paramsInstance
 	if self.opening == True:
@@ -599,29 +618,35 @@ class GUI(QMainWindow):
 	xRange = []
         zLabel = []
         zRange = []
-	for fig in self.opts:
+	n = 0
+	for i,fig in enumerate(self.opts):
 	    for x in range(self.opts[fig].width*self.opts[fig].height):
 		data.append(str(self.opts[fig].boxes[x].currentText()))
 		try:
 		    xRange.append(str(self.opts[fig].xRanges[x].text()))
-		except AttributeError:
+		except AttributeError: print "\tAttribute Error plot() (line 607)"
+		except KeyError:
 		    xRange.append("none")
 		try:
-		    zLabel.append(str(self.opts[fig].zLabel.text()))
-		    zRange.append(str(self.opts[fig].zRange.text()))
+		    zLabel.append(str(self.opts[fig].zLabels[x].text()))
+		    zRange.append(str(self.opts[fig].zRanges[x].text()))
 		except AttributeError:
 		    zLabel.append("none")
 		    zRange.append("none")
+		except KeyError:
+		    zLabel.append("none")
+		    zRange.append("none")
+	    n = i+x
 
 	n = 0
-	for i,figure in enumerate(self.plots): # each figure
+	for i,figure in enumerate(self.opts):
 	    try:
-		# each plot inside a figure
 		for x in range(self.opts[figure].width*self.opts[figure].height):
 		    self.plots[figure].setGraphParams(self.dirPath,x,
 			    data[i+x+n],xRange[i+x+n],zLabel[i+x+n],zRange[i+x+n]);
-		n += 1
+		n = i+x
 	    except AttributeError: print "GUI: setGraphParams exception"
+	    except IndexError: print "IndexError: at line (632)"
 
     # (2.5) Sets widget to displayedGraph & graphParams to paramsInstans
     def changePlot(self):

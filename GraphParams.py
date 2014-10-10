@@ -10,6 +10,8 @@ class GraphParams(QWidget):
 	self.layout = QGridLayout()
 	self.trialSelects = {}
 	self.xRanges = {}
+	self.zLabels = {}
+	self.zRanges = {}
 	subplotLabel = QLabel("Dimensions (w,h):")
 	self.subplotDimensions = QLineEdit()
 	self.subplotDimensions.returnPressed.connect(self.fillBoxes)
@@ -26,7 +28,10 @@ class GraphParams(QWidget):
 	self.width = int(self.args[0])
 	self.height = int(self.args[1])
 	for x in range(self.width*self.height):
-	    self.mpl.adjustSubplots(self.width,self.height,x+1)
+	    if self.gui.dimensionButton.text() == "2D Plot":
+		self.mpl.adjustSubplots(self.width,self.height,x+1,d=True)
+	    else:
+		self.mpl.adjustSubplots(self.width,self.height,x+1)
 	    self.labels[x] = QLabel("DataBox for subplot %i:" % (int(x)+1))
 	    self.boxes[x] = QComboBox()
 	    self.gui.fillDataBoxes(self,x)
@@ -44,13 +49,18 @@ class GraphParams(QWidget):
 
     def initOptions(self,x):
 	if self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length2:
-            self.trialSelects[x] = QLineEdit("Enter trial #")
-	    self.xRanges[x] = QLineEdit("x range")
-	    self.fillListRanges(self.gui.length1)
-            #self.trialSelect.returnPressed.connect(self.changeTrial)
-            self.trialSelects[x].returnPressed.connect(self.otherLambda(x))
-            self.layout.addWidget(self.trialSelects[x],(x*2)+2,0,Qt.AlignCenter)
-	    self.layout.addWidget(self.xRanges[x],(x*2)+2,1,Qt.AlignCenter)
+	    if self.gui.dimensionButton.text() == "2D Plot":
+		self.zLabels[x] = QLineEdit("z label")
+		self.zRanges[x] = QLineEdit("z range")
+		self.layout.addWidget(self.zLabels[x],(x*2)+2,0)
+		self.layout.addWidget(self.zRanges[x],(x*2)+2,1)
+	    else:
+		self.trialSelects[x] = QLineEdit("Enter trial #")
+		self.xRanges[x] = QLineEdit("x range")
+		self.fillListRanges(self.gui.length1)
+		self.trialSelects[x].returnPressed.connect(self.otherLambda(x))
+		self.layout.addWidget(self.trialSelects[x],(x*2)+2,0,Qt.AlignCenter)
+		self.layout.addWidget(self.xRanges[x],(x*2)+2,1,Qt.AlignCenter)
 	elif self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length1:
 	    w1 = self.layout.itemAtPosition((x*2)+2,0)
 	    self.layout.removeWidget(w1.widget())
@@ -58,19 +68,8 @@ class GraphParams(QWidget):
 	    self.layout.removeWidget(w2.widget())
 	    self.layout.addWidget(QLabel(),(x*2)+2,0)
 	    self.layout.addWidget(QLabel(),(x*2)+2,1)
-	"""
-	elif self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length3:
-            self.mpl.plt.cla()
-            self.mpl.plt = self.mpl.figure.add_subplot(111, projection='3d')
-            self.mpl.figure.canvas.draw()
-            self.dataBox1 = QComboBox()
-            self.zLabel = QLineEdit("z label")
-            self.zRange = QLineEdit("z range")
-            self.zLabel.returnPressed.connect(self.gui.plot)
-            self.zRange.returnPressed.connect(self.gui.plot)
-	    self.layout.addWidget(self.dataBox,1,0,Qt.AlignCenter) self.layout.addWidget(self.zLabel,2,0)
-	    self.layout.addWidget(self.zRange,2,1)
-	"""
+	else:
+	    print self.boxes[x].currentText(), "is not a proper file length"
 
     # Support method for Time Plot implementations
     def changeTrial(self,x):
