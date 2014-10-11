@@ -20,7 +20,7 @@ class GraphParams(QWidget):
 	self.setLayout(self.layout)
 	self.show()
 
-    # Fills layout according to styleSelect selection
+    # Fills data boxes with files
     def fillBoxes(self):
 	self.labels = {}
 	self.boxes = {}
@@ -41,12 +41,15 @@ class GraphParams(QWidget):
 	    self.layout.addWidget(QLabel(),(x*2)+2,0)
 	    self.layout.addWidget(QLabel(),(x*2)+2,1)
 
+##### Helper functions
     def lambdaFunc(self,index):
 	return lambda : self.initOptions(index)
 
     def otherLambda(self, index):
 	return lambda : self.changeTrial(index)
+################################################
 
+    # Initialized graphing parameters
     def initOptions(self,x):
 	if self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length2:
 	    if self.gui.dimensionButton.text() == "2D Plot":

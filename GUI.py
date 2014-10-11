@@ -1,5 +1,5 @@
-import gc
 import os
+import gc
 import sys
 import subprocess
 from PySide.QtGui import *
@@ -15,11 +15,13 @@ class GUI(QMainWindow):
 	self.setCentralWidget(self.w)
         self.opening = False
 	self.initUI()
-    ## Test code -- un-comment line 136/7 and remove line 517
-    	self.saveFile()
-    	self.genFuncBox("coreFuncNoTrials")
-    	self.run()
-    ##
+    """ Test code -- to speed up testing, un-comment lines 21-23, comment out
+    the first command of `saveFile()` lines 122-123, un-comment line 124 after
+    changing it to the proper path, and un-comment 509 """
+#    	self.saveFile()
+#    	self.genFuncBox("coreFuncNoTrials")
+#    	self.run()
+
   ###			   ###
   ### Builds Simulator GUI ###
   ###			   ###
@@ -50,7 +52,7 @@ class GUI(QMainWindow):
     def menuInit(self):
 	self.menubar = QMenuBar()
 
-	# Menu: Open (1.1) & Save (1.2)
+	# Menu: Open & Save
 	_file = self.menubar.addMenu('File')
 	openAction = QAction("Open",self,triggered=self.openFile)
         openAction.setShortcut('Ctrl+O')
@@ -59,7 +61,7 @@ class GUI(QMainWindow):
         saveAction.setShortcut('Ctrl+S')
 	_file.addAction(saveAction)
 
-	# Menu: Show/Hide (1.3) Switch (1.4) Run (1.5) Plot (2.4) & Cycle (2.6)
+	# Menu: Show/Hide, Switch, Run, Plot, & Cycle
 	simulation = self.menubar.addMenu('Simulation')
 	collapseAction = QAction("Show/Hide Settings",self,triggered=self.collapse)
 	collapseAction.setShortcut('Ctrl+E')
@@ -77,7 +79,7 @@ class GUI(QMainWindow):
 	nextAction.setShortcut('Ctrl+C')
 	simulation.addAction(nextAction)
 
-    # Read parameters from file and sets sim/graphValues (1.1)
+    # (1.1 )Read parameters from file and sets sim/graphValues ### NEEDS TO BE REIMPLEMENTED ###
     def openFile(self):
         self.opening = True
 	self.filePath, _= QFileDialog.getOpenFileName(self, 'open file', \
@@ -112,30 +114,14 @@ class GUI(QMainWindow):
 	    self.dirPath = self.simValues[5]
 	    self.numGraphs.setText(self.simValues[6])
 	    x = 1
-	    # Requires GUI interaction (graphing settings) prior to opening file
-	    # Populates proper fields of GraphParams with graphing values
-	    """
-	    for opt in self.opts:
-                self.filterDataFiles()
-		if self.opts[opt].styleSelect.currentText() == "Trial Plot":
-		    self.opts[opt].dataBox.setEditText(self.graphValues[x]);x+=1
-		elif self.opts[opt].styleSelect.currentText() == "Time Plot":
-		    self.opts[opt].dataBox.setEditText(self.graphValues[x]);x+=1
-		    self.opts[opt].xRange.setText(self.graphValues[x]);x+=1
-		    self.opts[opt].trialSelect.setText(self.graphValues[x]);x+=1
-		else:
-		    self.opts[opt].dataBox.setEditText(self.graphValues[x]);x+=1
-		    self.opts[opt].zLabel.setEditText(self.graphValues[x]);x+=1
-		    self.opts[opt].zRange.setText(self.graphValues[x]);x+=1
-	    """
 	    self.plot()
             self.opening = False
 
-    # Writes sim/graph values & data files to .sim (1.2)
+    # (1.2) Writes sim/graph values & data files to .sim ### NEEDS TO BE REIMPLEMENTED ###
     def saveFile(self):
-	#self.filePath, _= QFileDialog.getSaveFileName(self, 'save file', \
-	     #'~/', 'Simulations (*.sim)' )
-	self.filePath = "/Users/aweeeezy/bin/ivry/Test/Untitled"
+	self.filePath, _= QFileDialog.getSaveFileName(self, 'save file', \
+	     '~/', 'Simulations (*.sim)' )
+	#self.filePath = "/Users/aweeeezy/bin/ivry/Test/Untitled"
 	fileSplit = self.filePath.split("/")
 	self.dirPath = "/".join(fileSplit[:-1])
 	title = fileSplit[-1]
@@ -145,23 +131,6 @@ class GUI(QMainWindow):
 			str(self.numTrials.text()),str(self.numSteps.text()),
 				str(self.dirPath)]
 	self.graphValues = []
-	# Grabs graphing values...each segment is prepended with a string
-	# denoting what type of GraphParams instance to populate to
-	"""
-	for opt in self.opts:
-	    if self.opts[opt].styleSelect.currentText() == "Trial Plot":
-		self.graphValues.append("Trial Plot")
-		self.graphValues.append(self.opts[opt].dataBox.currentText())
-	    elif self.opts[opt].styleSelect.currentText() == "Time Plot":
-                self.graphValues.append("Time Plot")
-		self.graphValues.append(self.opts[opt].dataBox.currentText())
-		self.graphValues.append(self.opts[opt].xRange.text())
-                self.graphValues.append(self.opts[opt].trialSelect.text())
-	    else:
-                self.graphValues.append("Surface Plot")
-                self.graphValues.append(self.opts[opt].zLabel.text())
-		self.graphValues.append(self.opts[opt].zRange.text())
-	"""
 	with open(self.filePath, 'w') as f:
 	    for item in self.simValues:
 		f.write(str(item)+"\n")
@@ -169,10 +138,13 @@ class GUI(QMainWindow):
 	    for item in self.graphValues:
 		f.write(str(item)+"\n")
 	    f.write("\n")
-#	    for item in self.files:
-#		f.write(str(item)+"\n")
+	    try:
+		for item in self.files:
+		    f.write(str(item)+"\n")
+	    except AttributeError:
+		print "Save again after running to record data files"
 
-    # Shows/hides the settings window (1.3)
+    # (1.3) Shows/hides the settings window
     def collapse(self):
 	if self.simOptions.isVisible() == True or \
 		self.graphOptions.isVisible() == True:
@@ -184,7 +156,7 @@ class GUI(QMainWindow):
 	    self.simOptions.setVisible(True)
 	    self.w.layout.setColumnMinimumWidth(0,100)
 
-    # Switches between simulation and graph settings (1.4)
+    # (1.4) Switches between simulation and graph settings
     def switch(self):
 	if self.simOptions.isVisible() == True:
 	    self.simOptions.setVisible(False)
@@ -193,8 +165,8 @@ class GUI(QMainWindow):
 	    self.graphOptions.setVisible(False)
 	    self.simOptions.setVisible(True)
 
-    # (a) if '.c', call subprocess that executes .c file (1.5.1)
-    # (b) if '.sim', call subprocess w/ execArgs appended to cmd list
+    # (1.5.1) if '.c', call subprocess that executes .c file
+    # if '.sim', call subprocess w/ execArgs appended to cmd list
     def run(self):
 	try:
 	    extension = self.filePath[-2:]
@@ -227,7 +199,7 @@ class GUI(QMainWindow):
 	except AttributeError:
 	    self.console.insertPlainText("Double check inputs & save file first.\n")
 
-    # Runs selected .c file or coreFunc.c (1.5.2)
+    # (1.5.2) Runs selected .c file or coreFunc.c
     def runC(self, cmd=0):
 	if cmd == 0:
 	    process = self.dirPath+"/a.out"
@@ -242,7 +214,7 @@ class GUI(QMainWindow):
 	    core = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 	    self.filterDataFiles()
 
-    # Filters files with "." in them (1.5.3)
+    # (1.5.3) Filters files with "." in them
     def filterDataFiles(self):
 	self.files = os.listdir(self.dirPath)
 	copy = list(self.files)
@@ -253,15 +225,11 @@ class GUI(QMainWindow):
 	self.length2 = int(self.numSteps.text())*int(self.length1)
 	self.timeSteps = int(self.numSteps.text())
 
-    def fileLength(self,_file):
-	with open(self.dirPath+'/'+_file) as f:
-	    data = f.readlines()
-	return len(data)
-
-    # Fills dataBoxes w/ files (size based) (1.5.4)
+    # (1.5.4) Fills dataBoxes w/ files (size based)
     def fillDataBoxes(self,fig,subplotNum):
         try:
 	    dataBox = fig.boxes[subplotNum]
+	    # Sorts out trial data files if 3D plotting
 	    if self.dimensionButton.text() == "2D Plot":
 		for f in self.files:
 		    with open(self.dirPath+'/'+f, 'r') as fi:
@@ -273,12 +241,18 @@ class GUI(QMainWindow):
         except AttributeError:
 	    self.console.insertPlainText("Double check inputs & save file first.\n")
 
+    # (1.5.5) Support function for GraphParams class
+    def fileLength(self,_file):
+	with open(self.dirPath+'/'+_file) as f:
+	    data = f.readlines()
+	return len(data)
+
   ###					     ###
   ### (2) Labels/layouts for setting options ###
   ###	    layouts & support functions	     ###
 
     def optionsInit(self):
-	# Layout for simulator widgets (2.2)
+	# (2.1) Layout for simulator widgets
 	self.simOptions = QWidget()
 	self.simOptLayout = QGridLayout()
 	self.loopParams1 = QWidget()
@@ -290,7 +264,7 @@ class GUI(QMainWindow):
 	self.initParams2.setVisible(False)
 	self.coreFunc = QPushButton("coreFuncNoTrials")
 
-	# Loop settings for first coreFunc
+	# (2.1.1) Loop settings for coreFuncTrials
 	self.loopSettings = QGridLayout()
 	loopTitle = QLabel("<font size=6><b>Loop Parameters</b></font>")
 	numConditions = QLabel("<b>Conditions: (press enter)</b>")
@@ -322,35 +296,7 @@ class GUI(QMainWindow):
 	self.loopSettings.addWidget(label2,5,1)
 	self.loopParams1.setLayout(self.loopSettings)
 
-	# Loop settings for second coreFunc
-	self.loopSettings2 = QGridLayout()
-	loopTitle2 = QLabel("<font size=6><b>Loop Parameters</b></font>")
-	numConditions2 = QLabel("<b>Conditions: (press enter)</b>")
-	numSim2 = QLabel("<b>Simulations:</b>")
-	numSteps2 =  QLabel("<b>Steps:</b>")
-	self.numCond2 = QLineEdit("1")
-	self.numCond2.returnPressed.connect(self.lambdaGenFuncBox(self.coreFunc.text()))
-	self.numSim2 = QLineEdit("1")
-	self.numSteps2 = QLineEdit("3000")
-	label3 = QLabel("<b>Available functions</b>")
-	label4 = QLabel("<b>Functions to simulate</b>")
-
-	self.availableFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
-	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
-	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
-
-	self.loopSettings2.addWidget(loopTitle2,0,0,1,2,Qt.AlignCenter)
-	self.loopSettings2.addWidget(numConditions2,1,0)
-	self.loopSettings2.addWidget(numSim2,2,0)
-	self.loopSettings2.addWidget(numSteps2,3,0)
-	self.loopSettings2.addWidget(self.numCond2,1,1,1,2)
-	self.loopSettings2.addWidget(self.numSim2,2,1,1,2)
-	self.loopSettings2.addWidget(self.numSteps2,3,1,1,2)
-	self.loopSettings2.addWidget(label3,4,0)
-	self.loopSettings2.addWidget(label4,4,1)
-	self.loopParams2.setLayout(self.loopSettings2)
-
-	# Optional initialization parameters for first coreFunc
+	# (2.1.2) Optional initialization parameters for coreFuncTrials
 	self.initParamSettings = QGridLayout()
 	paramTitle = QLabel("<font size=6>Initialization Parameters</font>")
 	checkBox = QLabel("Use custom init params:")
@@ -466,7 +412,42 @@ class GUI(QMainWindow):
 	self.initParamSettings.addWidget(self.LTP_tan,24,1)
 	self.initParamSettings.addWidget(self.LTD_tan,25,1)
 	self.initParams1.setLayout(self.initParamSettings)
+	#scrollAreaParams1 = QScrollArea(self.simOptions)
+	#scrollAreaParams1.setWidget(self.initParams1)
 
+	# (2.1.3) Loop settings for coreFuncNoTrials
+	self.loopSettings2 = QGridLayout()
+	loopTitle2 = QLabel("<font size=6><b>Loop Parameters</b></font>")
+	numConditions2 = QLabel("<b>Conditions: (press enter)</b>")
+	numSim2 = QLabel("<b>Simulations:</b>")
+	numSteps2 =  QLabel("<b>Steps:</b>")
+	self.numCond2 = QLineEdit("1")
+	self.numCond2.returnPressed.connect(self.lambdaGenFuncBox(self.coreFunc.text()))
+	self.numSim2 = QLineEdit("1")
+	self.numSteps2 = QLineEdit("3000")
+	label3 = QLabel("<b>Available functions</b>")
+	label4 = QLabel("<b>Functions to simulate</b>")
+
+	self.availableFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
+	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
+	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
+
+	self.loopSettings2.addWidget(loopTitle2,0,0,1,2,Qt.AlignCenter)
+	self.loopSettings2.addWidget(numConditions2,1,0)
+	self.loopSettings2.addWidget(numSim2,2,0)
+	self.loopSettings2.addWidget(numSteps2,3,0)
+	self.loopSettings2.addWidget(self.numCond2,1,1,1,2)
+	self.loopSettings2.addWidget(self.numSim2,2,1,1,2)
+	self.loopSettings2.addWidget(self.numSteps2,3,1,1,2)
+	self.loopSettings2.addWidget(label3,4,0)
+	self.loopSettings2.addWidget(label4,4,1)
+	self.loopParams2.setLayout(self.loopSettings2)
+
+	# (2.1.4) Optional initialization parameters for coreFuncNoTrials
+	#scrollAreaParams2 = QScrollArea()
+	#scrollAreaParams2.setWidget(self.initParams2)
+
+	# (2.1.5) Toolbar & layout setup
 	simButtons = QToolBar()
 	self.paramsButton = QPushButton("initParams/loopParams")
 	self.paramsButton.pressed.connect(self.switchSettings)
@@ -480,9 +461,7 @@ class GUI(QMainWindow):
 	self.simOptLayout.addWidget(self.initParams2,1,0)
 	self.simOptions.setLayout(self.simOptLayout)
 
-	# Optional initialization parameters for second coreFunc
-
-	# Layout for graphing widgets (2.1)
+	# (2.2) Layout for graphing widgets
 	self.graphOptions = QWidget()
 	self.graphOptions.setVisible(False)
 	graphingSettings = QGridLayout()
@@ -507,6 +486,7 @@ class GUI(QMainWindow):
 	self.graphOptions.setLayout(graphingSettings)
 	self.initFigs()
 
+    # (2.2.1) Support function for setting up graph settings
     def initFigs(self):
 	self.displayedGraph.clear()
 	self.displayedGraph.addItem("Console")
@@ -514,7 +494,7 @@ class GUI(QMainWindow):
 	self.opts = {}
 	self.figCount = 0
 
-    # Creates paired QComboBoxes with connected clear QPushButton (2.2.1)
+    # (2.2.2) Creates paired QComboBoxes with QPushButton
     def genFuncBox(self,coreFuncText):
 	for x in range(int(self.numCond.text())):
 	    self.availableFuncsMap[x] = QComboBox()
@@ -526,7 +506,7 @@ class GUI(QMainWindow):
 	    self.availableFuncsMap[x].addItems(funcs)
 	    self.availableFuncsMap[x].activated.connect(self.pairComboBoxes(x))
 	    ###
-	    self.selectedFuncsMap[0].addItem(self.availableFuncsMap[0].currentText())
+	    #self.selectedFuncsMap[0].addItem(self.availableFuncsMap[0].currentText())
 	    ###
 	    self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
 	    if coreFuncText == "coreFuncNoTrials":
@@ -538,10 +518,10 @@ class GUI(QMainWindow):
 		self.loopSettings2.addWidget(self.selectedFuncsMap[x],x+7,1)
 		self.loopSettings2.addWidget(self.clearFuncs[x],x+7,2)
 
+##### Support functions for `genFuncBox()`
     def lambdaGenFuncBox(self, coreFuncText):
 	return lambda : self.genFuncBox(coreFuncText)
 
-    # Helper functions
     def pairComboBoxes(self,index):
 	return lambda : self.addTrialFunc(index)
 
@@ -554,7 +534,9 @@ class GUI(QMainWindow):
 
     def clearBox(self,index):
 	self.selectedFuncsMap[index].clear()
+###########################################
 
+    # (2.2.3) Alternates between loop & parameter settings
     def switchSettings(self):
 	if self.coreFunc.text() == "coreFuncTrials":
 	    if self.loopParams2.isVisible() == True:
@@ -571,6 +553,7 @@ class GUI(QMainWindow):
 		self.loopParams1.setVisible(True)
 		self.initParams1.setVisible(False)
 
+    # (2.2.4) Alternated between coreFuncTrials & coreFuncNoTrials
     def switchCoreFuncs(self):
 	if self.coreFunc.text() == "coreFuncNoTrials":
 	    self.loopParams1.setVisible(False)
@@ -583,6 +566,7 @@ class GUI(QMainWindow):
 	    self.loopParams1.setVisible(True)
 	    self.coreFunc.setText("coreFuncNoTrials")
 
+    # (2.2.5) Changes text of dimensionButton (support function for `plot()`)
     def switchPlot(self):
 	if self.dimensionButton.text() == "3D Plot":
 	    self.dimensionButton.setText("2D Plot")
@@ -594,11 +578,7 @@ class GUI(QMainWindow):
 	self.figCount+=1
 	_next = "Fig"+str(self.figCount)
 	graphInstance = MplGrapher(self)
-	#if dimensionButton.text() == "2D Plots":
-	    #paramsInstance = GraphParams(self,graphInstance,d=3)
 	paramsInstance = GraphParams(self,graphInstance)
-	#else:
-	    #paramsInstance = GraphParams(self,graphInstance)
 	self.plots[_next] = graphInstance
 	self.opts[_next] = paramsInstance
 	if self.opening == True:

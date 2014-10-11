@@ -14,7 +14,7 @@ from math import floor, ceil
 
 # FigureCanvas to be embedded in PySide GUI
 class MplGrapher(QWidget):
-    def __init__(self,gui,parent=None,d=2):
+    def __init__(self,gui,parent=None):
 	super(MplGrapher, self).__init__(parent)
 	self.initFigure()
 	self.gui = gui
@@ -29,6 +29,7 @@ class MplGrapher(QWidget):
 	self.layout.addWidget(self.canvas)
 	self.setLayout(self.layout)
 
+    # Sets up subplot grid length and width...adds plot to container
     def adjustSubplots(self,w,h,p,d=False):
 	if d == True:
 	    self.plotContainer[p-1] = self.figure.add_subplot(w,h,p,projection='3d')
@@ -36,7 +37,7 @@ class MplGrapher(QWidget):
 	    self.plotContainer[p-1] = self.figure.add_subplot(w,h,p)
 
 
-    # Sets up labels and axis' ranges
+    # Sets up labels and axis' ranges, then plots
     def setGraphParams(self,path,plot,file_,xRange,zLabel,zRange):
         self.plotContainer[plot].clear()
 	if "\n" in path: # Used if opening from .sim
@@ -73,6 +74,7 @@ class MplGrapher(QWidget):
 	except NameError:
 	    print "NameError"
 
+    # Helper function
     def stringToFloat(self,batch):
 	newList = []
 	for string in batch:
@@ -80,29 +82,12 @@ class MplGrapher(QWidget):
 	    newList.append(float(string))
 	return newList
 
-    # Until I can examine a working .c file that generates data, I won't be
-    # able to abstract this functionality
+    # Plots in 3D
     def plot3D(self,file_,plot,xRange,zLabel,zRange):
 	try:
-	    """
-	    _file = "/Users/aweeeezy/bin/ivry/surface_plot_test/w_d1_A.txt"
-	    with open(_file, 'r') as f:
-		data = f.readline()
-	    line  = data.split(' ')
-	    data = []
-	    for x in range(10000):
-		data.append(float(line[x]))
-	    X = np.arange(0,100)
-	    Y = np.arange(0,100)
-	    Z = np.reshape(data, (100,100))
-	    X,Y = np.meshgrid(Y,X)
-	    """
 	    with open(file_, 'r') as f:
-		rawData = f.readlines()
-	    data = []
-	    for line in rawData:
-		line = line.strip("\n")
-		data.append(float(line))
+		data = f.readlines()
+	    data = self.stringToFloat(data)
 	    X = np.arange(0,self.gui.length1)
 	    Y = np.arange(0,(self.gui.timeSteps))
 	    Z = np.reshape(data, (self.gui.length1,self.gui.timeSteps))
