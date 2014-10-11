@@ -1,0 +1,5 @@
+.DS_Store
+.*.py.*
+.*.c.*
+*.pyc
+Simulator\ Introduction.mp4

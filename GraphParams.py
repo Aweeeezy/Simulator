@@ -41,7 +41,7 @@ class GraphParams(QWidget):
 	    self.layout.addWidget(QLabel(),(x*2)+2,0)
 	    self.layout.addWidget(QLabel(),(x*2)+2,1)
 
-##### Helper functions
+##### Helper functions ########################
     def lambdaFunc(self,index):
 	return lambda : self.initOptions(index)
 

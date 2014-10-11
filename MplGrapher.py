@@ -74,14 +74,6 @@ class MplGrapher(QWidget):
 	except NameError:
 	    print "NameError"
 
-    # Helper function
-    def stringToFloat(self,batch):
-	newList = []
-	for string in batch:
-	    string = string.strip("\n")
-	    newList.append(float(string))
-	return newList
-
     # Plots in 3D
     def plot3D(self,file_,plot,xRange,zLabel,zRange):
 	try:
@@ -98,6 +90,14 @@ class MplGrapher(QWidget):
 	    z = zRange.split("-")
 	except ValueError:
 	    print "this is that ValueError"
+
+    # Helper function
+    def stringToFloat(self,batch):
+	newList = []
+	for string in batch:
+	    string = string.strip("\n")
+	    newList.append(float(string))
+	return newList
 
     def getFig(self):
 	return self

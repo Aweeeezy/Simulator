@@ -444,8 +444,7 @@ class GUI(QMainWindow):
 	self.loopParams2.setLayout(self.loopSettings2)
 
 	# (2.1.4) Optional initialization parameters for coreFuncNoTrials
-	#scrollAreaParams2 = QScrollArea()
-	#scrollAreaParams2.setWidget(self.initParams2)
+	""" Yet to be implemented """
 
 	# (2.1.5) Toolbar & layout setup
 	simButtons = QToolBar()
