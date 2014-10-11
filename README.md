@@ -7,7 +7,7 @@ This package provides a GUI for customizing and analyzing models for simulating 
 * Open & run .c files:
     - The only prerequisite of the selected .c file is that it writes data to files that do not include a "." in their name.
     - As of this version, the `filterDataFiles()` method is intended for use with instrumental learning models similar to the one specified in coreFunc.c (having trials and time steps per trial)...
-      if other models are used, `dataBoxes` may not be filled properly or at all, particularly when the data files have a higher variance in length than 2.
+      if other models are used, the proper graphing parameters may not be instantiated properly or at all, particularly when the data files have a higher variance in length than 2.
 * Generate custom simulations via simulator settings widget that supplies coreFunc.c with specifications:
     - These specifciation include: number of conditons, simulations, trials, time steps, and optionally a list of initialization values for parameters.
     - If custom values for init params aren't chosen, then the hard coded set of init params are used.
