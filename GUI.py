@@ -196,14 +196,14 @@ class GUI(QMainWindow):
 			    self.execArgs.append(str(field.text()))
 		    else: self.execArgs.append(str(0))
 		trialFuncLenghts = []
-		for box in self.selectedFuncsMap.itervalues():
+		for box in self.selectedFuncs.itervalues():
 		    trialFuncLenghts.append(box.count())
 		max_trialFunc = max(trialFuncLenghts)
 		self.execArgs.append(str(max_trialFunc))
 		# Appends # of values & values from QComboBoxes in runFuncs{}
 		self.trialLengths = []
 		self.timeStepLengths = []
-		for box in self.selectedFuncsMap.itervalues():
+		for box in self.selectedFuncs.itervalues():
 		    boxContent = [box.itemText(i) for i in range(box.count())]
 		    self.trialLengths.append(int(self.numTrials.text())*box.count())
 		    self.timeStepLengths.append(int(self.numTrials.text())*int(self.numSteps.text())*box.count())
@@ -460,8 +460,8 @@ class GUI(QMainWindow):
 	label3 = QLabel("<b>Available functions</b>")
 	label4 = QLabel("<b>Functions to simulate</b>")
 
-	self.availableFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
-	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
+	self.availableFuncs = {} # (Dict) QComboBoxes w/ all sim funcs.
+	self.selectedFuncs = {} # (Dict) QComboBoxes w/ selected sim funcs.
 	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
 
 	self.loopSettings2.addWidget(loopTitle2,0,0,1,2,Qt.AlignCenter)
@@ -548,40 +548,40 @@ class GUI(QMainWindow):
     def genFuncBox(self):
 	if self.coreFunc.text() == "coreFuncNoTrials":
 	    for x in range(int(self.numCond.text())):
-		self.availableFuncsMap[x] = QComboBox()
-		self.selectedFuncsMap[x] = QComboBox()
+		self.availableFuncs[x] = QComboBox()
+		self.selectedFuncs[x] = QComboBox()
 		self.clearFuncs[x] = QPushButton("Clear")
 		funcs = ("simulate_acquisition_full","simulate_acquisition_partial",\
 			    "simulate_extinction","simulate_extinction_prf",\
 			    "simulate_reacquisition_2","simulate_reacquisition_8")
-		self.availableFuncsMap[x].addItems(funcs)
-		self.availableFuncsMap[x].activated.connect(self.pairComboBoxes(x))
+		self.availableFuncs[x].addItems(funcs)
+		self.availableFuncs[x].activated.connect(self.pairComboBoxes(x))
 	#########
-		self.selectedFuncsMap[0].addItem(self.availableFuncsMap[0].currentText())
+		self.selectedFuncs[0].addItem(self.availableFuncs[0].currentText())
 	#########
 		self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
-		self.loopSettings.addWidget(self.availableFuncsMap[x],x+7,0)
-		self.loopSettings.addWidget(self.selectedFuncsMap[x],x+7,1)
+		self.loopSettings.addWidget(self.availableFuncs[x],x+7,0)
+		self.loopSettings.addWidget(self.selectedFuncs[x],x+7,1)
 		self.loopSettings.addWidget(self.clearFuncs[x],x+7,2)
 	elif self.coreFunc.text() == "coreFuncTrials":
 	    for x in range(int(self.numCond2.text())):
-		self.availableFuncsMap[x] = QComboBox()
-		self.selectedFuncsMap[x] = QComboBox()
+		self.availableFuncs[x] = QComboBox()
+		self.selectedFuncs[x] = QComboBox()
 		self.clearFuncs[x] = QPushButton("Clear")
 		funcs = ("simulate_acquisition_full","simulate_acquisition_partial",\
 			    "simulate_extinction","simulate_extinction_prf",\
 			    "simulate_reacquisition_2","simulate_reacquisition_8")
-		self.availableFuncsMap[x].addItems(funcs)
-		self.availableFuncsMap[x].activated.connect(self.pairComboBoxes(x))
+		self.availableFuncs[x].addItems(funcs)
+		self.availableFuncs[x].activated.connect(self.pairComboBoxes(x))
 		self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
-		self.loopSettings2.addWidget(self.availableFuncsMap[x],x+7,0)
-		self.loopSettings2.addWidget(self.selectedFuncsMap[x],x+7,1)
+		self.loopSettings2.addWidget(self.availableFuncs[x],x+7,0)
+		self.loopSettings2.addWidget(self.selectedFuncs[x],x+7,1)
 		self.loopSettings2.addWidget(self.clearFuncs[x],x+7,2)
 
 ##### Support functions for `genFuncBox()`
     def lambdaGenFuncBox(self):
-	self.availableFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
-	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
+	self.availableFuncs = {} # (Dict) QComboBoxes w/ all sim funcs.
+	self.selectedFuncs = {} # (Dict) QComboBoxes w/ selected sim funcs.
 	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
 	return lambda : self.genFuncBox()
 
@@ -589,14 +589,14 @@ class GUI(QMainWindow):
 	return lambda : self.addTrialFunc(index)
 
     def addTrialFunc(self,index):
-	self.selectedFuncsMap[index].addItem(
-				self.availableFuncsMap[index].currentText())
+	self.selectedFuncs[index].addItem(
+				self.availableFuncs[index].currentText())
 
     def pairClearButton(self,index):
 	return lambda : self.clearBox(index)
 
     def clearBox(self,index):
-	self.selectedFuncsMap[index].clear()
+	self.selectedFuncs[index].clear()
 ###########################################
 
     # (2.2.3) Alternates between loop & parameter settings
