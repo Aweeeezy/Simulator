@@ -15,12 +15,12 @@ class GUI(QMainWindow):
 	self.setCentralWidget(self.w)
         self.opening = False
 	self.initUI()
-    """ Test code -- to speed up testing, un-comment lines 21-23, comment out
-    the first command of `saveFile()` lines 122-123, un-comment line 124 after
-    changing it to the proper path, and un-comment 509 """
-#    	self.saveFile()
-#    	self.genFuncBox("coreFuncNoTrials")
-#    	self.run()
+	""" Test code -- to speed up testing, un-comment lines 21-23, comment out
+	the first command of `saveFile()` lines 122-123, un-comment line 124 after
+	changing it to the proper path, and un-comment 509 """
+	self.saveFile()
+    	self.genFuncBox()
+    	self.run()
 
   ###			   ###
   ### Builds Simulator GUI ###
@@ -175,20 +175,38 @@ class GUI(QMainWindow):
 	    else:
 		if self.coreFunc.text() == "coreFuncNoTrials":
 		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFuncTrials']
+		    cmd.append(str(self.dirPath)+'/')
+		    self.execArgs = [str(self.numCond.text()),str(self.numSim.text()),
+				    str(self.numTrials.text()),str(self.numSteps.text())]
+		    # If custom init params are to be used, append to execArgs
+		    if "Checked" in str(self.checkBox.checkState()):
+			self.execArgs.append(str(1))
+			for field in self.paramsList:
+			    self.execArgs.append(str(field.text()))
+		    else: self.execArgs.append(str(0))
 		if self.coreFunc.text() == "coreFuncTrials":
 		    cmd = ['/Users/aweeeezy/bin/ivry/Simulator/coreFuncNoTrials']
-		cmd.append(str(self.dirPath)+'/')
-		self.execArgs = [str(self.numCond.text()),str(self.numSim.text()),
-				str(self.numTrials.text()),str(self.numSteps.text())]
-		# If custom init params are to be used, append to execArgs
-		if "Checked" in str(self.checkBox.checkState()):
-		    self.execArgs.append(str(1))
-		    for field in self.paramsList:
-			self.execArgs.append(str(field.text()))
-		else: self.execArgs.append(str(0))
+		    cmd.append(str(self.dirPath)+'/')
+		    self.execArgs = [str(self.numCond2.text()),str(self.numSim2.text()),
+				     str(self.numSteps2.text())]
+		    # If custom init params are to be used, append to execArgs
+		    if "Checked" in str(self.checkBox2.checkState()):
+			self.execArgs.append(str(1))
+			for field in self.paramsList2:
+			    self.execArgs.append(str(field.text()))
+		    else: self.execArgs.append(str(0))
+		trialFuncLenghts = []
+		for box in self.selectedFuncsMap.itervalues():
+		    trialFuncLenghts.append(box.count())
+		max_trialFunc = max(trialFuncLenghts)
+		self.execArgs.append(str(max_trialFunc))
 		# Appends # of values & values from QComboBoxes in runFuncs{}
+		self.trialLengths = []
+		self.timeStepLengths = []
 		for box in self.selectedFuncsMap.itervalues():
 		    boxContent = [box.itemText(i) for i in range(box.count())]
+		    self.trialLengths.append(int(self.numTrials.text())*box.count())
+		    self.timeStepLengths.append(int(self.numTrials.text())*int(self.numSteps.text())*box.count())
 		    self.execArgs.append(str(box.count()))
 		    for content in boxContent:
 			self.execArgs.append(str(content))
@@ -212,18 +230,26 @@ class GUI(QMainWindow):
 	else:
 	    subprocess.call(cmd)
 	    core = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-	    self.filterDataFiles()
+	    self.filterDataFiles(cmd)
 
     # (1.5.3) Filters files with "." in them
-    def filterDataFiles(self):
-	self.files = os.listdir(self.dirPath)
-	copy = list(self.files)
-	for _file in copy:
-	    if "." in _file:
-		self.files.remove(_file)
-	self.length1 = int(self.numTrials.text())*int(self.numCond.text())
-	self.length2 = int(self.numSteps.text())*int(self.length1)
-	self.timeSteps = int(self.numSteps.text())
+    def filterDataFiles(self, cmd=0):
+	try:
+	    self.files = os.listdir(self.dirPath)
+	    copy = list(self.files)
+	    for _file in copy:
+		if "." in _file:
+		    self.files.remove(_file)
+	    if cmd == 0:
+		fileLengths = []
+		for f in self.files:
+		    with open(self.dirPath+'/'+f, 'r') as fi:
+			data = fi.readlines()
+			dataLength = len(data)
+			if dataLength not in fileLengths:
+			    fileLengths.append(dataLength)
+	    self.timeSteps = int(self.numSteps.text())
+	except NameError: pass
 
     # (1.5.4) Fills dataBoxes w/ files (size based)
     def fillDataBoxes(self,fig,subplotNum):
@@ -234,7 +260,7 @@ class GUI(QMainWindow):
 		for f in self.files:
 		    with open(self.dirPath+'/'+f, 'r') as fi:
 			data = fi.readlines()
-			if len(data) == self.length2:
+			if len(data) in self.timeStepLengths:
 			    dataBox.addItem(f)
 	    else:
 		dataBox.addItems(self.files)
@@ -254,7 +280,7 @@ class GUI(QMainWindow):
     def optionsInit(self):
 	# (2.1) Layout for simulator widgets
 	self.simOptions = QWidget()
-	self.simOptLayout = QGridLayout()
+	simOptLayout = QGridLayout()
 	self.loopParams1 = QWidget()
 	self.initParams1 = QWidget()
 	self.loopParams2 = QWidget()
@@ -272,16 +298,12 @@ class GUI(QMainWindow):
 	numTrials =  QLabel("<b>Trials:</b>")
 	numSteps =  QLabel("<b>Steps:</b>")
 	self.numCond = QLineEdit("1")
-	self.numCond.returnPressed.connect(self.lambdaGenFuncBox(self.coreFunc.text()))
+	self.numCond.returnPressed.connect(self.lambdaGenFuncBox())
 	self.numSim = QLineEdit("1")
 	self.numTrials = QLineEdit("300")
 	self.numSteps = QLineEdit("3000")
 	label1 = QLabel("<b>Available functions</b>")
 	label2 = QLabel("<b>Functions to simulate</b>")
-
-	self.availableFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
-	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
-	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
 
 	self.loopSettings.addWidget(loopTitle,0,0,1,2,Qt.AlignCenter)
 	self.loopSettings.addWidget(numConditions,1,0)
@@ -297,10 +319,14 @@ class GUI(QMainWindow):
 	self.loopParams1.setLayout(self.loopSettings)
 
 	# (2.1.2) Optional initialization parameters for coreFuncTrials
-	self.initParamSettings = QGridLayout()
+	outerParamLayout = QGridLayout()
 	paramTitle = QLabel("<font size=6>Initialization Parameters</font>")
 	checkBox = QLabel("Use custom init params:")
 	self.checkBox = QCheckBox()
+	outerParamLayout.addWidget(paramTitle,0,0,1,2,Qt.AlignCenter)
+	outerParamLayout.addWidget(checkBox,1,0)
+	outerParamLayout.addWidget(self.checkBox,1,1)
+
 	tau = QLabel("Tau:")
 	cue_onset = QLabel("Cue Onset:")
 	cue_duration = QLabel("Cue Duration:")
@@ -326,94 +352,100 @@ class GUI(QMainWindow):
 	LTP_tan = QLabel("LTP Tan:")
 	LTD_tan = QLabel("LTD Tan:")
 
-	self.tau = QLineEdit()
-	self.cue_onset = QLineEdit()
-	self.cue_duration = QLineEdit()
-	self.alpha_func_a = QLineEdit()
-	self.alpha_func_b = QLineEdit()
-	self.alpha_func_a_camkII = QLineEdit()
-	self.alpha_func_b_camkII = QLineEdit()
-	self.sensory_amp = QLineEdit()
-	self.pf_amp = QLineEdit()
-	self.pause_mod_amp = QLineEdit()
-	self.pause_decay = QLineEdit()
-	self.w_tan_msn = QLineEdit()
-	self.w_msn_mot = QLineEdit()
-	self.w_pf_tan_init = QLineEdit()
-	self.w_ctx_msn_init = QLineEdit()
-	self.pr_alpha = QLineEdit()
-	self.response_threshold = QLineEdit()
-	self.AMPA_threshold = QLineEdit()
-	self.NMDA_threshold = QLineEdit()
-	self.DA_base = QLineEdit()
-	self.LTP_msn = QLineEdit()
-	self.LTD_msn = QLineEdit()
-	self.LTP_tan = QLineEdit()
-	self.LTD_tan = QLineEdit()
+	tau = QLineEdit()
+	cue_onset = QLineEdit()
+	cue_duration = QLineEdit()
+	alpha_func_a = QLineEdit()
+	alpha_func_b = QLineEdit()
+	alpha_func_a_camkII = QLineEdit()
+	alpha_func_b_camkII = QLineEdit()
+	sensory_amp = QLineEdit()
+	pf_amp = QLineEdit()
+	pause_mod_amp = QLineEdit()
+	pause_decay = QLineEdit()
+	w_tan_msn = QLineEdit()
+	w_msn_mot = QLineEdit()
+	w_pf_tan_init = QLineEdit()
+	w_ctx_msn_init = QLineEdit()
+	pr_alpha = QLineEdit()
+	response_threshold = QLineEdit()
+	AMPA_threshold = QLineEdit()
+	NMDA_threshold = QLineEdit()
+	DA_base = QLineEdit()
+	LTP_msn = QLineEdit()
+	LTD_msn = QLineEdit()
+	LTP_tan = QLineEdit()
+	LTD_tan = QLineEdit()
 
-	self.paramsList = [self.tau, self.cue_onset, self.cue_duration,
-	    self.alpha_func_a, self.alpha_func_b, self.alpha_func_a_camkII,
-	    self.alpha_func_b_camkII, self.sensory_amp, self.pf_amp,
-	    self.pause_mod_amp, self.pause_decay, self.w_tan_msn,
-	    self.w_msn_mot, self.w_pf_tan_init, self.w_ctx_msn_init,
-	    self.pr_alpha, self.response_threshold, self.AMPA_threshold,
-	    self.NMDA_threshold, self.DA_base, self.LTP_msn, self.LTD_msn,
-	    self.LTP_tan, self.LTD_tan]
+	self.paramsList = [tau, cue_onset, cue_duration, alpha_func_a,
+	    alpha_func_b, alpha_func_a_camkII, alpha_func_b_camkII,
+	    sensory_amp, pf_amp, pause_mod_amp, pause_decay, w_tan_msn,
+	    w_msn_mot, w_pf_tan_init, w_ctx_msn_init, pr_alpha,
+	    response_threshold, AMPA_threshold, NMDA_threshold, DA_base,
+	    LTP_msn, LTD_msn, LTP_tan, LTD_tan]
 
-	self.initParamSettings.addWidget(paramTitle,0,0,1,2,Qt.AlignCenter)
-	self.initParamSettings.addWidget(checkBox,1,1)
-	self.initParamSettings.addWidget(self.checkBox,1,2,Qt.AlignCenter)
-	self.initParamSettings.addWidget(tau,2,0)
-	self.initParamSettings.addWidget(cue_onset,3,0)
-	self.initParamSettings.addWidget(cue_duration,4,0)
-	self.initParamSettings.addWidget(alpha_func_a,5,0)
-	self.initParamSettings.addWidget(alpha_func_b,6,0)
-	self.initParamSettings.addWidget(alpha_func_a_camkII,7,0)
-	self.initParamSettings.addWidget(alpha_func_b_camkII,8,0)
-	self.initParamSettings.addWidget(sensory_amp,9,0)
-	self.initParamSettings.addWidget(pf_amp,10,0)
-	self.initParamSettings.addWidget(pause_mod_amp,11,0)
-	self.initParamSettings.addWidget(pause_decay,12,0)
-	self.initParamSettings.addWidget(w_tan_msn,13,0)
-	self.initParamSettings.addWidget(w_msn_mot,14,0)
-	self.initParamSettings.addWidget(w_pf_tan_init,15,0)
-	self.initParamSettings.addWidget(w_ctx_msn_init,16,0)
-	self.initParamSettings.addWidget(pr_alpha,17,0)
-	self.initParamSettings.addWidget(response_threshold,18,0)
-	self.initParamSettings.addWidget(AMPA_threshold,19,0)
-	self.initParamSettings.addWidget(NMDA_threshold,20,0)
-	self.initParamSettings.addWidget(DA_base,21,0)
-	self.initParamSettings.addWidget(LTP_msn,22,0)
-	self.initParamSettings.addWidget(LTD_msn,23,0)
-	self.initParamSettings.addWidget(LTP_tan,24,0)
-	self.initParamSettings.addWidget(LTD_tan,25,0)
-	self.initParamSettings.addWidget(self.tau,2,1)
-	self.initParamSettings.addWidget(self.cue_onset,3,1)
-	self.initParamSettings.addWidget(self.cue_duration,4,1)
-	self.initParamSettings.addWidget(self.alpha_func_a,5,1)
-	self.initParamSettings.addWidget(self.alpha_func_b,6,1)
-	self.initParamSettings.addWidget(self.alpha_func_a_camkII,7,1)
-	self.initParamSettings.addWidget(self.alpha_func_b_camkII,8,1)
-	self.initParamSettings.addWidget(self.sensory_amp,9,1)
-	self.initParamSettings.addWidget(self.pf_amp,10,1)
-	self.initParamSettings.addWidget(self.pause_mod_amp,11,1)
-	self.initParamSettings.addWidget(self.pause_decay,12,1)
-	self.initParamSettings.addWidget(self.w_tan_msn,13,1)
-	self.initParamSettings.addWidget(self.w_msn_mot,14,1)
-	self.initParamSettings.addWidget(self.w_pf_tan_init,15,1)
-	self.initParamSettings.addWidget(self.w_ctx_msn_init,16,1)
-	self.initParamSettings.addWidget(self.pr_alpha,17,1)
-	self.initParamSettings.addWidget(self.response_threshold,18,1)
-	self.initParamSettings.addWidget(self.AMPA_threshold,19,1)
-	self.initParamSettings.addWidget(self.NMDA_threshold,20,1)
-	self.initParamSettings.addWidget(self.DA_base,21,1)
-	self.initParamSettings.addWidget(self.LTP_msn,22,1)
-	self.initParamSettings.addWidget(self.LTD_msn,23,1)
-	self.initParamSettings.addWidget(self.LTP_tan,24,1)
-	self.initParamSettings.addWidget(self.LTD_tan,25,1)
-	self.initParams1.setLayout(self.initParamSettings)
-	#scrollAreaParams1 = QScrollArea(self.simOptions)
-	#scrollAreaParams1.setWidget(self.initParams1)
+	innerParamLayout = QGridLayout()
+	innerParamLayout.addWidget(tau,0,0)
+	innerParamLayout.addWidget(cue_onset,1,0)
+	innerParamLayout.addWidget(cue_duration,2,0)
+	innerParamLayout.addWidget(alpha_func_a,3,0)
+	innerParamLayout.addWidget(alpha_func_b,4,0)
+	innerParamLayout.addWidget(alpha_func_a_camkII,5,0)
+	innerParamLayout.addWidget(alpha_func_b_camkII,6,0)
+	innerParamLayout.addWidget(sensory_amp,7,0)
+	innerParamLayout.addWidget(pf_amp,8,0)
+	innerParamLayout.addWidget(pause_mod_amp,9,0)
+	innerParamLayout.addWidget(pause_decay,10,0)
+	innerParamLayout.addWidget(w_tan_msn,11,0)
+	innerParamLayout.addWidget(w_msn_mot,12,0)
+	innerParamLayout.addWidget(w_pf_tan_init,13,0)
+	innerParamLayout.addWidget(w_ctx_msn_init,14,0)
+	innerParamLayout.addWidget(pr_alpha,15,0)
+	innerParamLayout.addWidget(response_threshold,16,0)
+	innerParamLayout.addWidget(AMPA_threshold,17,0)
+	innerParamLayout.addWidget(NMDA_threshold,18,0)
+	innerParamLayout.addWidget(DA_base,19,0)
+	innerParamLayout.addWidget(LTP_msn,20,0)
+	innerParamLayout.addWidget(LTD_msn,21,0)
+	innerParamLayout.addWidget(LTP_tan,22,0)
+	innerParamLayout.addWidget(LTD_tan,23,0)
+	innerParamLayout.addWidget(tau,0,1)
+	innerParamLayout.addWidget(cue_onset,1,1)
+	innerParamLayout.addWidget(cue_duration,2,1)
+	innerParamLayout.addWidget(alpha_func_a,3,1)
+	innerParamLayout.addWidget(alpha_func_b,4,1)
+	innerParamLayout.addWidget(alpha_func_a_camkII,5,1)
+	innerParamLayout.addWidget(alpha_func_b_camkII,6,1)
+	innerParamLayout.addWidget(sensory_amp,7,1)
+	innerParamLayout.addWidget(pf_amp,8,1)
+	innerParamLayout.addWidget(pause_mod_amp,9,1)
+	innerParamLayout.addWidget(pause_decay,10,1)
+	innerParamLayout.addWidget(w_tan_msn,11,1)
+	innerParamLayout.addWidget(w_msn_mot,12,1)
+	innerParamLayout.addWidget(w_pf_tan_init,13,1)
+	innerParamLayout.addWidget(w_ctx_msn_init,14,1)
+	innerParamLayout.addWidget(pr_alpha,15,1)
+	innerParamLayout.addWidget(response_threshold,16,1)
+	innerParamLayout.addWidget(AMPA_threshold,17,1)
+	innerParamLayout.addWidget(NMDA_threshold,18,1)
+	innerParamLayout.addWidget(DA_base,19,1)
+	innerParamLayout.addWidget(LTP_msn,20,1)
+	innerParamLayout.addWidget(LTD_msn,21,1)
+	innerParamLayout.addWidget(LTP_tan,22,1)
+	innerParamLayout.addWidget(LTD_tan,23,1)
+	dummyWidget = QWidget()
+	dummyLayout = QVBoxLayout()
+	innerParamWidget = QWidget()
+	innerParamWidget.setLayout(innerParamLayout)
+	dummyLayout.addWidget(innerParamWidget)
+	dummyWidget.setLayout(dummyLayout)
+	scrollAreaParams1 = QScrollArea(dummyWidget)
+	scrollAreaParams1.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+	scrollAreaParams1.setFixedWidth(dummyWidget.width()-335)
+	scrollAreaParams1.setFixedHeight(dummyWidget.height())
+	scrollAreaParams1.setWidget(innerParamWidget)
+	outerParamLayout.addWidget(dummyWidget,2,0,50,2)
+	self.initParams1.setLayout(outerParamLayout)
 
 	# (2.1.3) Loop settings for coreFuncNoTrials
 	self.loopSettings2 = QGridLayout()
@@ -422,7 +454,7 @@ class GUI(QMainWindow):
 	numSim2 = QLabel("<b>Simulations:</b>")
 	numSteps2 =  QLabel("<b>Steps:</b>")
 	self.numCond2 = QLineEdit("1")
-	self.numCond2.returnPressed.connect(self.lambdaGenFuncBox(self.coreFunc.text()))
+	self.numCond2.returnPressed.connect(self.lambdaGenFuncBox())
 	self.numSim2 = QLineEdit("1")
 	self.numSteps2 = QLineEdit("3000")
 	label3 = QLabel("<b>Available functions</b>")
@@ -445,20 +477,39 @@ class GUI(QMainWindow):
 
 	# (2.1.4) Optional initialization parameters for coreFuncNoTrials
 	""" Yet to be implemented """
+	innerParamLayout2 = QGridLayout()
+	paramTitle2 = QLabel("<font size=6>Initialization Parameters</font>")
+	checkBox2 = QLabel("Use custom init params:")
+	self.checkBox2 = QCheckBox()
+
+	self.paramsList2 = [tau, cue_onset, cue_duration, alpha_func_a,
+	    alpha_func_b, alpha_func_a_camkII, alpha_func_b_camkII, sensory_amp,
+	    pf_amp, pause_mod_amp, pause_decay, w_tan_msn, w_msn_mot,
+	    w_pf_tan_init, w_ctx_msn_init, pr_alpha, response_threshold,
+	    AMPA_threshold, NMDA_threshold, DA_base, LTP_msn, LTD_msn,
+	    LTP_tan, LTD_tan]
+
+	innerParamLayout2.addWidget(paramTitle2,0,0,1,2,Qt.AlignCenter)
+	innerParamLayout2.addWidget(checkBox2,1,1)
+	innerParamLayout2.addWidget(self.checkBox2,1,2,Qt.AlignCenter)
+	#scrollAreaParams1 = QScrollArea()
+	#simOptLayout.addWidget(scrollAreaParams1)
+	self.initParams2.setLayout(innerParamLayout2)
+	#scrollAreaParams1.setWidget(self.initParams1)
 
 	# (2.1.5) Toolbar & layout setup
 	simButtons = QToolBar()
-	self.paramsButton = QPushButton("initParams/loopParams")
-	self.paramsButton.pressed.connect(self.switchSettings)
+	paramsButton = QPushButton("initParams/loopParams")
+	paramsButton.pressed.connect(self.switchSettings)
 	self.coreFunc.pressed.connect(self.switchCoreFuncs)
-	simButtons.addWidget(self.paramsButton)
+	simButtons.addWidget(paramsButton)
 	simButtons.addWidget(self.coreFunc)
-	self.simOptLayout.addWidget(simButtons,0,0)
-	self.simOptLayout.addWidget(self.loopParams1,1,0)
-	self.simOptLayout.addWidget(self.initParams1,1,0)
-	self.simOptLayout.addWidget(self.loopParams2,1,0)
-	self.simOptLayout.addWidget(self.initParams2,1,0)
-	self.simOptions.setLayout(self.simOptLayout)
+	simOptLayout.addWidget(simButtons,0,0)
+	simOptLayout.addWidget(self.loopParams1,1,0)
+	simOptLayout.addWidget(self.initParams1,1,0)
+	simOptLayout.addWidget(self.loopParams2,1,0)
+	simOptLayout.addWidget(self.initParams2,1,0)
+	self.simOptions.setLayout(simOptLayout)
 
 	# (2.2) Layout for graphing widgets
 	self.graphOptions = QWidget()
@@ -494,32 +545,45 @@ class GUI(QMainWindow):
 	self.figCount = 0
 
     # (2.2.2) Creates paired QComboBoxes with QPushButton
-    def genFuncBox(self,coreFuncText):
-	for x in range(int(self.numCond.text())):
-	    self.availableFuncsMap[x] = QComboBox()
-	    self.selectedFuncsMap[x] = QComboBox()
-	    self.clearFuncs[x] = QPushButton("Clear")
-	    funcs = ("simulate_acquisition_full","simulate_acquisition_partial",\
-			"simulate_extinction","simulate_extinction_prf",\
-			"simulate_reacquisition_2","simulate_reacquisition_8")
-	    self.availableFuncsMap[x].addItems(funcs)
-	    self.availableFuncsMap[x].activated.connect(self.pairComboBoxes(x))
-	    ###
-	    #self.selectedFuncsMap[0].addItem(self.availableFuncsMap[0].currentText())
-	    ###
-	    self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
-	    if coreFuncText == "coreFuncNoTrials":
+    def genFuncBox(self):
+	if self.coreFunc.text() == "coreFuncNoTrials":
+	    for x in range(int(self.numCond.text())):
+		self.availableFuncsMap[x] = QComboBox()
+		self.selectedFuncsMap[x] = QComboBox()
+		self.clearFuncs[x] = QPushButton("Clear")
+		funcs = ("simulate_acquisition_full","simulate_acquisition_partial",\
+			    "simulate_extinction","simulate_extinction_prf",\
+			    "simulate_reacquisition_2","simulate_reacquisition_8")
+		self.availableFuncsMap[x].addItems(funcs)
+		self.availableFuncsMap[x].activated.connect(self.pairComboBoxes(x))
+	#########
+		self.selectedFuncsMap[0].addItem(self.availableFuncsMap[0].currentText())
+	#########
+		self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
 		self.loopSettings.addWidget(self.availableFuncsMap[x],x+7,0)
 		self.loopSettings.addWidget(self.selectedFuncsMap[x],x+7,1)
 		self.loopSettings.addWidget(self.clearFuncs[x],x+7,2)
-	    elif coreFuncText == "coreFuncTrials":
+	elif self.coreFunc.text() == "coreFuncTrials":
+	    for x in range(int(self.numCond2.text())):
+		self.availableFuncsMap[x] = QComboBox()
+		self.selectedFuncsMap[x] = QComboBox()
+		self.clearFuncs[x] = QPushButton("Clear")
+		funcs = ("simulate_acquisition_full","simulate_acquisition_partial",\
+			    "simulate_extinction","simulate_extinction_prf",\
+			    "simulate_reacquisition_2","simulate_reacquisition_8")
+		self.availableFuncsMap[x].addItems(funcs)
+		self.availableFuncsMap[x].activated.connect(self.pairComboBoxes(x))
+		self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
 		self.loopSettings2.addWidget(self.availableFuncsMap[x],x+7,0)
 		self.loopSettings2.addWidget(self.selectedFuncsMap[x],x+7,1)
 		self.loopSettings2.addWidget(self.clearFuncs[x],x+7,2)
 
 ##### Support functions for `genFuncBox()`
-    def lambdaGenFuncBox(self, coreFuncText):
-	return lambda : self.genFuncBox(coreFuncText)
+    def lambdaGenFuncBox(self):
+	self.availableFuncsMap = {} # (Dict) QComboBoxes w/ all sim funcs.
+	self.selectedFuncsMap = {} # (Dict) QComboBoxes w/ selected sim funcs.
+	self.clearFuncs = {} # (Dict) QButtons that clear selected sim funcs.
+	return lambda : self.genFuncBox()
 
     def pairComboBoxes(self,index):
 	return lambda : self.addTrialFunc(index)
@@ -598,34 +662,41 @@ class GUI(QMainWindow):
         zLabel = []
         zRange = []
 	n = 0
+
 	for i,fig in enumerate(self.opts):
-	    for x in range(self.opts[fig].width*self.opts[fig].height):
-		data.append(str(self.opts[fig].boxes[x].currentText()))
-		try:
-		    xRange.append(str(self.opts[fig].xRanges[x].text()))
-		except AttributeError: print "\tAttribute Error plot() (line 607)"
-		except KeyError:
-		    xRange.append("none")
-		try:
-		    zLabel.append(str(self.opts[fig].zLabels[x].text()))
-		    zRange.append(str(self.opts[fig].zRanges[x].text()))
-		except AttributeError:
-		    zLabel.append("none")
-		    zRange.append("none")
-		except KeyError:
-		    zLabel.append("none")
-		    zRange.append("none")
-	    n = i+x
+	    fig = self.opts[fig]
+	    if fig.changed == True:
+		for x in range(fig.width*fig.height):
+		    data.append(str(fig.boxes[x].currentText()))
+		    try:
+			xRange.append(str(fig.xRanges[x].text()))
+		    except AttributeError: print "\tAttribute Error (plot())"
+		    except KeyError: xRange.append("none")
+		    try:
+			zLabel.append(str(fig.zLabels[x].text()))
+			zRange.append(str(fig.zRanges[x].text()))
+		    except AttributeError:
+			zLabel.append("none")
+			zRange.append("none")
+		    except KeyError:
+			zLabel.append("none")
+			zRange.append("none")
+		n = i+x
 
 	n = 0
-	for i,figure in enumerate(self.opts):
+	for i,fig in enumerate(self.plots):
+	    figure = self.opts[fig]
+	    fig = self.plots[fig]
 	    try:
-		for x in range(self.opts[figure].width*self.opts[figure].height):
-		    self.plots[figure].setGraphParams(self.dirPath,x,
-			    data[i+x+n],xRange[i+x+n],zLabel[i+x+n],zRange[i+x+n]);
-		n = i+x
+		if fig.changed == True:
+		    for x in range(figure.width*figure.height):
+			fig.setGraphParams(self.dirPath,x,
+				data[i+x+n],xRange[i+x+n],zLabel[i+x+n],zRange[i+x+n],
+				int(figure.boxes[x].currentText().split('_')[-1]))
+		    n = i+x
+		    fig.changed = False
 	    except AttributeError: print "GUI: setGraphParams exception"
-	    except IndexError: print "IndexError: at line (632)"
+	    except IndexError: print "IndexError..."
 
     # (2.5) Sets widget to displayedGraph & graphParams to paramsInstans
     def changePlot(self):
@@ -677,6 +748,7 @@ class GUI(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    app.setApplicationName("Simulator")
     gui = GUI()
     gui.showMaximized()
     sys.exit(app.exec_())

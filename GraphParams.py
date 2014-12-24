@@ -9,6 +9,7 @@ class GraphParams(QWidget):
         self.gui = gui
 	self.layout = QGridLayout()
 	self.trialSelects = {}
+	self.changed = False
 	self.xRanges = {}
 	self.zLabels = {}
 	self.zRanges = {}
@@ -22,6 +23,7 @@ class GraphParams(QWidget):
 
     # Fills data boxes with files
     def fillBoxes(self):
+	self.changed = True
 	self.labels = {}
 	self.boxes = {}
 	self.args = self.subplotDimensions.text().split(",")
@@ -51,7 +53,8 @@ class GraphParams(QWidget):
 
     # Initialized graphing parameters
     def initOptions(self,x):
-	if self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length2:
+	self.changed = True
+	if self.gui.fileLength(self.boxes[x].currentText()) in self.gui.timeStepLengths:
 	    if self.gui.dimensionButton.text() == "2D Plot":
 		self.zLabels[x] = QLineEdit("z label")
 		self.zRanges[x] = QLineEdit("z range")
@@ -60,11 +63,11 @@ class GraphParams(QWidget):
 	    else:
 		self.trialSelects[x] = QLineEdit("Enter trial #")
 		self.xRanges[x] = QLineEdit("x range")
-		self.fillListRanges(self.gui.length1)
+		self.fillListRanges(self.gui.trialLengths[int(self.boxes[x].currentText().split('_')[-1])])
 		self.trialSelects[x].returnPressed.connect(self.otherLambda(x))
 		self.layout.addWidget(self.trialSelects[x],(x*2)+2,0,Qt.AlignCenter)
 		self.layout.addWidget(self.xRanges[x],(x*2)+2,1,Qt.AlignCenter)
-	elif self.gui.fileLength(self.boxes[x].currentText()) == self.gui.length1:
+	elif self.gui.fileLength(self.boxes[x].currentText()) in self.gui.trialLengths:
 	    w1 = self.layout.itemAtPosition((x*2)+2,0)
 	    self.layout.removeWidget(w1.widget())
 	    w2 = self.layout.itemAtPosition((x*2)+2,1)
@@ -76,6 +79,7 @@ class GraphParams(QWidget):
 
     # Support method for Time Plot implementations
     def changeTrial(self,x):
+	self.changed = self.mpl.changed = True
 	self.xRanges[x].setText(self.ranges[int(self.trialSelects[x].text())-1])
 
     # Creates a list of ranges so changeTrial can operate

@@ -20,6 +20,7 @@ class MplGrapher(QWidget):
 	self.gui = gui
 
     def initFigure(self):
+	self.changed = False
 	self.figure = Figure()
 	self.canvas = FigureCanvas(self.figure)
 	self.plotContainer = {}
@@ -31,6 +32,7 @@ class MplGrapher(QWidget):
 
     # Sets up subplot grid length and width...adds plot to container
     def adjustSubplots(self,w,h,p,d=False):
+	self.changed = True
 	if d == True:
 	    self.plotContainer[p-1] = self.figure.add_subplot(w,h,p,projection='3d')
 	else:
@@ -38,7 +40,7 @@ class MplGrapher(QWidget):
 
 
     # Sets up labels and axis' ranges, then plots
-    def setGraphParams(self,path,plot,file_,xRange,zLabel,zRange):
+    def setGraphParams(self,path,plot,file_,xRange,zLabel,zRange,index):
         self.plotContainer[plot].clear()
 	if "\n" in path: # Used if opening from .sim
 	    _file = path[:-1]+"/"+file_[:-1]
@@ -51,7 +53,7 @@ class MplGrapher(QWidget):
 	    with open(_file, 'r') as f:
 	       data = f.readlines()
 	    data = self.stringToFloat(data)
-	    if len(data) == self.gui.length2:
+	    if len(data) in self.gui.timeStepLengths:
 		x = xRange.split("-")
 		try:
 		    self.computeRanges(plot,data,x,xRange)
@@ -59,7 +61,7 @@ class MplGrapher(QWidget):
 		except ValueError: pass
 	    self.plotContainer[plot].plot(data, 'b-')
 	else:
-	    self.plot3D(_file,plot,xRange,zLabel,zRange)
+	    self.plot3D(_file,plot,xRange,zLabel,zRange,index)
         try: self.figure.canvas.draw()
         except ValueError: pass
 
@@ -75,14 +77,14 @@ class MplGrapher(QWidget):
 	    print "NameError"
 
     # Plots in 3D
-    def plot3D(self,file_,plot,xRange,zLabel,zRange):
+    def plot3D(self,file_,plot,xRange,zLabel,zRange,index):
 	try:
 	    with open(file_, 'r') as f:
 		data = f.readlines()
 	    data = self.stringToFloat(data)
-	    X = np.arange(0,self.gui.length1)
+	    X = np.arange(0,self.gui.trialLengths[index])
 	    Y = np.arange(0,(self.gui.timeSteps))
-	    Z = np.reshape(data, (self.gui.length1,self.gui.timeSteps))
+	    Z = np.reshape(data, (self.gui.trialLengths[index],self.gui.timeSteps))
 	    X,Y = np.meshgrid(Y,X)
 	    surf = self.plotContainer[plot].plot_surface(X,Y,Z,linewidth=0.1,cmap=cm.jet)
 	    surf.set_clim([np.min(Z),np.max(Z)])
