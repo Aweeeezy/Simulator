@@ -17,10 +17,10 @@ class GUI(QMainWindow):
 	self.initUI()
 	""" Test code -- to speed up testing, un-comment lines 21-23, comment out
 	the first command of `saveFile()` lines 122-123, un-comment line 124 after
-	changing it to the proper path, and un-comment 509 """
+	changing it to the proper path, and un-comment 509
 	self.saveFile()
     	self.genFuncBox()
-    	self.run()
+    	self.run() """
 
   ###			   ###
   ### Builds Simulator GUI ###
@@ -83,8 +83,9 @@ class GUI(QMainWindow):
     def openFile(self):
         self.opening = True
 	self.filePath, _= QFileDialog.getOpenFileName(self, 'open file', \
-	    '~/', 'Simulations (*.sim);;C Files (*.c)' )
+	    '~/', 'Simulations (*.sim);;C Files (*.out)' )
 	fullPath = self.filePath.split("/")
+	self.dirPath = "/".join(fullPath[:-1])
 	title = fullPath[-1]
 	self.w.setWindowTitle(title)
 	# Read .sim & populate proper fields...types of values are deliminated
@@ -169,8 +170,10 @@ class GUI(QMainWindow):
     # if '.sim', call subprocess w/ execArgs appended to cmd list
     def run(self):
 	try:
-	    extension = self.filePath[-2:]
-	    if extension == ".c":
+	    extension = self.filePath[-4:]
+	    self.timeStepLengths = []
+	    self.trialLengths = []
+	    if extension == ".out":
 		self.runC()
 	    else:
 		if self.coreFunc.text() == "coreFuncNoTrials":
@@ -201,8 +204,6 @@ class GUI(QMainWindow):
 		max_trialFunc = max(trialFuncLenghts)
 		self.execArgs.append(str(max_trialFunc))
 		# Appends # of values & values from QComboBoxes in runFuncs{}
-		self.trialLengths = []
-		self.timeStepLengths = []
 		for box in self.selectedFuncs.itervalues():
 		    boxContent = [box.itemText(i) for i in range(box.count())]
 		    self.trialLengths.append(int(self.numTrials.text())*box.count())
@@ -220,7 +221,8 @@ class GUI(QMainWindow):
     # (1.5.2) Runs selected .c file or coreFunc.c
     def runC(self, cmd=0):
 	if cmd == 0:
-	    process = self.dirPath+"/a.out"
+	    process = self.filePath
+	    self.promptDataTypes()
             core = subprocess.Popen(process, stdout=subprocess.PIPE)
             try:
                 for line in core.stdout:
@@ -231,6 +233,7 @@ class GUI(QMainWindow):
 	    subprocess.call(cmd)
 	    core = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 	    self.filterDataFiles(cmd)
+	self.switch()
 
     # (1.5.3) Filters files with "." in them
     def filterDataFiles(self, cmd=0):
@@ -240,7 +243,7 @@ class GUI(QMainWindow):
 	    for _file in copy:
 		if "." in _file:
 		    self.files.remove(_file)
-	    if cmd == 0:
+	    """if cmd == 0:
 		fileLengths = []
 		for f in self.files:
 		    with open(self.dirPath+'/'+f, 'r') as fi:
@@ -248,7 +251,10 @@ class GUI(QMainWindow):
 			dataLength = len(data)
 			if dataLength not in fileLengths:
 			    fileLengths.append(dataLength)
-	    self.timeSteps = int(self.numSteps.text())
+	    if cmd != 0:
+		self.timeSteps = int(self.numSteps.text())
+		self.trialCount = int(self.numTrials.text())
+	    """
 	except NameError: pass
 
     # (1.5.4) Fills dataBoxes w/ files (size based)
@@ -256,12 +262,15 @@ class GUI(QMainWindow):
         try:
 	    dataBox = fig.boxes[subplotNum]
 	    # Sorts out trial data files if 3D plotting
-	    if self.dimensionButton.text() == "2D Plot":
-		for f in self.files:
-		    with open(self.dirPath+'/'+f, 'r') as fi:
-			data = fi.readlines()
-			if len(data) in self.timeStepLengths:
-			    dataBox.addItem(f)
+	    if self.opening == False:
+		if self.dimensionButton.text() == "2D Plot":
+		    for f in self.files:
+			with open(self.dirPath+'/'+f, 'r') as fi:
+			    data = fi.readlines()
+			    if len(data) in self.timeStepLengths:
+				dataBox.addItem(f)
+		else:
+		    dataBox.addItems(self.files)
 	    else:
 		dataBox.addItems(self.files)
         except AttributeError:
@@ -272,6 +281,36 @@ class GUI(QMainWindow):
 	with open(self.dirPath+'/'+_file) as f:
 	    data = f.readlines()
 	return len(data)
+
+    def promptDataTypes(self):
+	self.promptWindow = QWidget()
+	promptLayout = QGridLayout()
+	warning = QLabel("<b>Warning: these values MUST be accurate to display graphs properly. This feature is only usable with one condition!</b>")
+	trials = QLabel("<b>Number of trials:</b>")
+	timeSteps = QLabel("<b>Number of time steps:</b>")
+	self.trialField = QLineEdit()
+	self.timeStepField = QLineEdit()
+	submit = QPushButton("Enter")
+	submit.pressed.connect(self.setSimValues)
+	self.trialField.returnPressed.connect(self.promptWindow.close)
+	self.timeStepField.returnPressed.connect(self.promptWindow.close)
+	self.trialField.returnPressed.connect(self.setSimValues)
+	self.timeStepField.returnPressed.connect(self.setSimValues)
+	promptLayout.addWidget(warning,0,0)
+	promptLayout.addWidget(trials,1,0)
+	promptLayout.addWidget(self.trialField,1,1)
+	promptLayout.addWidget(timeSteps,2,0)
+	promptLayout.addWidget(self.timeStepField,2,1)
+	promptLayout.addWidget(submit,3,0)
+	self.promptWindow.setLayout(promptLayout)
+	self.promptWindow.show()
+
+    def setSimValues(self):
+	self.trialCount = int(self.trialField.text())
+	self.timeSteps = int(self.timeStepField.text())
+	self.timeStepLengths.append(self.timeSteps)
+	self.trialLengths.append(self.trialCount)
+	self.promptWindow.close()
 
   ###					     ###
   ### (2) Labels/layouts for setting options ###
@@ -645,7 +684,8 @@ class GUI(QMainWindow):
 	self.plots[_next] = graphInstance
 	self.opts[_next] = paramsInstance
 	if self.opening == True:
-	    value = self.graphValues.pop(1)
+	    pass
+	    #value = self.graphValues.pop(1)
 	    #self.opts[_next].styleSelect.setEditText(value)
 	else:
 	    pass
@@ -690,12 +730,12 @@ class GUI(QMainWindow):
 	    try:
 		if fig.changed == True:
 		    for x in range(figure.width*figure.height):
-			fig.setGraphParams(self.dirPath,x,
+			fig.setGraphParams(self.opening ,self.dirPath,x,
 				data[i+x+n],xRange[i+x+n],zLabel[i+x+n],zRange[i+x+n],
 				int(figure.boxes[x].currentText().split('_')[-1]))
 		    n = i+x
 		    fig.changed = False
-	    except AttributeError: print "GUI: setGraphParams exception"
+	    #except AttributeError: print "GUI: setGraphParams exception"
 	    except IndexError: print "IndexError..."
 
     # (2.5) Sets widget to displayedGraph & graphParams to paramsInstans

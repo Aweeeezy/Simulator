@@ -69,6 +69,7 @@ int numTrials;
 int numSteps;
 int num_trialFuncs;
 int use_custom_params;
+int max_trialFuncs;
 int pad;
 
 int trial;
@@ -202,7 +203,8 @@ int main(int argc, char * argv[]) {
     numTrials = atoi(argv[4]);
     numSteps = atoi(argv[5]);
     use_custom_params = atoi(argv[6]);
-    pad = 7; // Spacer for reading off remaing values in argv[]
+    max_trialFuncs = atoi(argv[7]);
+    pad = 8; // Spacer for reading off remaing values in argv[]
 
     // Loop for parsing custom init params
     if(use_custom_params == 1) {
@@ -507,30 +509,30 @@ void allocate_buffers(void) {
     motor_spikes_record = (int ***) calloc(numSimulations, sizeof(int**));
 
     for(int i=0; i<numSimulations; i++) {
-        w_ctx_msn_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-        w_pf_tan_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-        response_record[i] = (int *) calloc(numTrials*num_trialFuncs, sizeof(int));
-        response_time_record[i] = (int *) calloc(numTrials*num_trialFuncs, sizeof(float));
-        reward_record[i] = (int *) calloc(numTrials*num_trialFuncs, sizeof(int));
-        predicted_reward_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-        rpe_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-        DA_record[i] = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+        w_ctx_msn_record[i] = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+        w_pf_tan_record[i] = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+        response_record[i] = (int *) calloc(numTrials*max_trialFuncs, sizeof(int));
+        response_time_record[i] = (int *) calloc(numTrials*max_trialFuncs, sizeof(float));
+        reward_record[i] = (int *) calloc(numTrials*max_trialFuncs, sizeof(int));
+        predicted_reward_record[i] = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+        rpe_record[i] = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+        DA_record[i] = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
 
-        sensory_square_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-        msn_v_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-        msn_output_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-        msn_spikes_record[i] = (int **) calloc(numTrials*num_trialFuncs, sizeof(int*));
-        pf_square_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-        tan_v_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-        tan_output_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-        tan_spikes_record[i] = (int **) calloc(numTrials*num_trialFuncs, sizeof(int*));
-        motor_v_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-        motor_output_record[i] = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-        motor_spikes_record[i] = (int **) calloc(numTrials*num_trialFuncs, sizeof(int*));
+        sensory_square_record[i] = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+        msn_v_record[i] = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+        msn_output_record[i] = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+        msn_spikes_record[i] = (int **) calloc(numTrials*max_trialFuncs, sizeof(int*));
+        pf_square_record[i] = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+        tan_v_record[i] = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+        tan_output_record[i] = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+        tan_spikes_record[i] = (int **) calloc(numTrials*max_trialFuncs, sizeof(int*));
+        motor_v_record[i] = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+        motor_output_record[i] = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+        motor_spikes_record[i] = (int **) calloc(numTrials*max_trialFuncs, sizeof(int*));
     }
 
     for(int i=0; i<numSimulations; i++) {
-        for(int j=0; j<numTrials*num_trialFuncs; j++) {
+        for(int j=0; j<numTrials*max_trialFuncs; j++) {
             sensory_square_record[i][j] = (float *) calloc(numSteps, sizeof(float));
             msn_v_record[i][j] = (float *) calloc(numSteps, sizeof(float));
             msn_output_record[i][j] = (float *) calloc(numSteps, sizeof(float));
@@ -560,28 +562,28 @@ void allocate_buffers(void) {
     }
 
     // Average records
-    w_ctx_msn_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-    w_pf_tan_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-    response_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-    response_time_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-    reward_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-    predicted_reward_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-    rpe_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
-    DA_record_ave = (float *) calloc(numTrials*num_trialFuncs, sizeof(float));
+    w_ctx_msn_record_ave = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+    w_pf_tan_record_ave = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+    response_record_ave = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+    response_time_record_ave = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+    reward_record_ave = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+    predicted_reward_record_ave = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+    rpe_record_ave = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
+    DA_record_ave = (float *) calloc(numTrials*max_trialFuncs, sizeof(float));
 
-    sensory_square_record_ave = (float **) calloc(numTrials*num_trialFuncs,sizeof(float*));
-    msn_v_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-    msn_output_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-    msn_spikes_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-    pf_square_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-    tan_v_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-    tan_output_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-    tan_spikes_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-    motor_v_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-    motor_output_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
-    motor_spikes_record_ave = (float **) calloc(numTrials*num_trialFuncs, sizeof(float*));
+    sensory_square_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    msn_v_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    msn_output_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    msn_spikes_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    pf_square_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    tan_v_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    tan_output_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    tan_spikes_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    motor_v_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    motor_output_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
+    motor_spikes_record_ave = (float **) calloc(numTrials*max_trialFuncs, sizeof(float*));
 
-    for(int i=0; i<numTrials*num_trialFuncs; i++) {
+    for(int i=0; i<numTrials*max_trialFuncs; i++) {
         sensory_square_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
         msn_v_record_ave[i] = (float *) calloc(numSteps, sizeof(float));
         msn_output_record_ave[i] = (float *) calloc(numSteps, sizeof(float));

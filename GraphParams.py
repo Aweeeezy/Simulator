@@ -54,28 +54,32 @@ class GraphParams(QWidget):
     # Initialized graphing parameters
     def initOptions(self,x):
 	self.changed = True
-	if self.gui.fileLength(self.boxes[x].currentText()) in self.gui.timeStepLengths:
-	    if self.gui.dimensionButton.text() == "2D Plot":
-		self.zLabels[x] = QLineEdit("z label")
-		self.zRanges[x] = QLineEdit("z range")
-		self.layout.addWidget(self.zLabels[x],(x*2)+2,0)
-		self.layout.addWidget(self.zRanges[x],(x*2)+2,1)
+	self.mpl.changed = True
+	try:
+	    if (self.gui.fileLength(self.boxes[x].currentText()) in
+		    self.gui.timeStepLengths) or self.gui.opening == True:
+		if self.gui.dimensionButton.text() == "2D Plot":
+		    self.zLabels[x] = QLineEdit("z label")
+		    self.zRanges[x] = QLineEdit("z range")
+		    self.layout.addWidget(self.zLabels[x],(x*2)+2,0)
+		    self.layout.addWidget(self.zRanges[x],(x*2)+2,1)
+		else:
+		    self.trialSelects[x] = QLineEdit("Enter trial #")
+		    self.xRanges[x] = QLineEdit("x range")
+		    self.fillListRanges(self.gui.trialLengths[int(self.boxes[x].currentText().split('_')[-1])])
+		    self.trialSelects[x].returnPressed.connect(self.otherLambda(x))
+		    self.layout.addWidget(self.trialSelects[x],(x*2)+2,0,Qt.AlignCenter)
+		    self.layout.addWidget(self.xRanges[x],(x*2)+2,1,Qt.AlignCenter)
+	    elif self.gui.fileLength(self.boxes[x].currentText()) in self.gui.trialLengths:
+		w1 = self.layout.itemAtPosition((x*2)+2,0)
+		self.layout.removeWidget(w1.widget())
+		w2 = self.layout.itemAtPosition((x*2)+2,1)
+		self.layout.removeWidget(w2.widget())
+		self.layout.addWidget(QLabel(),(x*2)+2,0)
+		self.layout.addWidget(QLabel(),(x*2)+2,1)
 	    else:
-		self.trialSelects[x] = QLineEdit("Enter trial #")
-		self.xRanges[x] = QLineEdit("x range")
-		self.fillListRanges(self.gui.trialLengths[int(self.boxes[x].currentText().split('_')[-1])])
-		self.trialSelects[x].returnPressed.connect(self.otherLambda(x))
-		self.layout.addWidget(self.trialSelects[x],(x*2)+2,0,Qt.AlignCenter)
-		self.layout.addWidget(self.xRanges[x],(x*2)+2,1,Qt.AlignCenter)
-	elif self.gui.fileLength(self.boxes[x].currentText()) in self.gui.trialLengths:
-	    w1 = self.layout.itemAtPosition((x*2)+2,0)
-	    self.layout.removeWidget(w1.widget())
-	    w2 = self.layout.itemAtPosition((x*2)+2,1)
-	    self.layout.removeWidget(w2.widget())
-	    self.layout.addWidget(QLabel(),(x*2)+2,0)
-	    self.layout.addWidget(QLabel(),(x*2)+2,1)
-	else:
-	    print self.boxes[x].currentText(), "is not a proper file length"
+		print self.boxes[x].currentText(), "is not a proper file length"
+	except AttributeError: pass
 
     # Support method for Time Plot implementations
     def changeTrial(self,x):
