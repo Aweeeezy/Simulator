@@ -7,7 +7,20 @@ from PySide.QtCore import *
 from MplGrapher import MplGrapher
 from GraphParams import GraphParams
 
-# Simulator GUI class
+"""
+*    This is a class used to either open a .out file (compiled C code) in order
+*    to run the file and plot the results that are saved in the same directory,
+*    or it can be used to pass in variables through the command line into a C
+*    code skeleton (.sim) to create custom simulations (usually time step loops nested
+*    inside of trial loops nested inside of simulation loops nested inside of
+*    differing conditions, but support for different model structures are being
+*    implemented currently) which can then be graphed in the same way.
+*
+*    The supporting classes, MplGrapher.py & GraphParams.py, offer an embedded
+*    Matplotlab canvas for graphing and a subwidget interface for specifying
+*    the parameters of the plot respectively.
+"""
+
 class GUI(QMainWindow):
     def __init__(self):
 	super(GUI, self).__init__()
@@ -15,9 +28,11 @@ class GUI(QMainWindow):
 	self.setCentralWidget(self.w)
         self.opening = False
 	self.initUI()
-	""" Test code -- to speed up testing, un-comment lines 21-23, comment out
-	the first command of `saveFile()` lines 122-123, un-comment line 124 after
-	changing it to the proper path, and un-comment 509
+	""" Test code -- to speed up testing, remove this comment block, comment
+	out the first command of `saveFile()`, remove the comment in the
+	following line after changing it to the proper path (the directory you
+	want to save the test to), and remove the comment on the 11th line of
+	`genFuncBox()`, (self.selectedFuncs[0].addItem...)
 	self.saveFile()
     	self.genFuncBox()
     	self.run() """
@@ -52,7 +67,7 @@ class GUI(QMainWindow):
     def menuInit(self):
 	self.menubar = QMenuBar()
 
-	# Menu: Open & Save
+	# Menu: Open (.out or .sim) & Save (.sim)
 	_file = self.menubar.addMenu('File')
 	openAction = QAction("Open",self,triggered=self.openFile)
         openAction.setShortcut('Ctrl+O')
@@ -61,7 +76,9 @@ class GUI(QMainWindow):
         saveAction.setShortcut('Ctrl+S')
 	_file.addAction(saveAction)
 
-	# Menu: Show/Hide, Switch, Run, Plot, & Cycle
+	# Menu: Show/Hide (options for canvas), Switch (between simulator
+	# settings & graphing options), Run (selected .out or .sim), Plot, &
+	# Cycle (between figures in canvas)
 	simulation = self.menubar.addMenu('Simulation')
 	collapseAction = QAction("Show/Hide Settings",self,triggered=self.collapse)
 	collapseAction.setShortcut('Ctrl+E')
@@ -79,7 +96,8 @@ class GUI(QMainWindow):
 	nextAction.setShortcut('Ctrl+C')
 	simulation.addAction(nextAction)
 
-    # (1.1 )Read parameters from file and sets sim/graphValues ### NEEDS TO BE REIMPLEMENTED ###
+    # (1.1) Read parameters from file and sets sim/graphValues ### NEEDS TO BE REIMPLEMENTED ###
+    # If .out is selected, just sets `self.filePath` & `self.dirPath`
     def openFile(self):
         self.opening = True
 	self.filePath, _= QFileDialog.getOpenFileName(self, 'open file', \
@@ -90,6 +108,7 @@ class GUI(QMainWindow):
 	self.w.setWindowTitle(title)
 	# Read .sim & populate proper fields...types of values are deliminated
 	# with a line break (types: simulator, graphing, files)
+	# THIS IS THE PART THAT NEEDS TO BE REIMPLEMENTED!
 	if self.filePath[-4:] == ".sim":
 	    with open(self.filePath, 'r') as f:
 		self.simValues = [""]
@@ -145,7 +164,7 @@ class GUI(QMainWindow):
 	    except AttributeError:
 		print "Save again after running to record data files"
 
-    # (1.3) Shows/hides the settings window
+    # (1.3) Shows/hides the graphing options subwidget
     def collapse(self):
 	if self.simOptions.isVisible() == True or \
 		self.graphOptions.isVisible() == True:
@@ -157,7 +176,7 @@ class GUI(QMainWindow):
 	    self.simOptions.setVisible(True)
 	    self.w.layout.setColumnMinimumWidth(0,100)
 
-    # (1.4) Switches between simulation and graph settings
+    # (1.4) Switches between simulation settings and graph options
     def switch(self):
 	if self.simOptions.isVisible() == True:
 	    self.simOptions.setVisible(False)
@@ -166,8 +185,8 @@ class GUI(QMainWindow):
 	    self.graphOptions.setVisible(False)
 	    self.simOptions.setVisible(True)
 
-    # (1.5.1) if '.c', call subprocess that executes .c file
-    # if '.sim', call subprocess w/ execArgs appended to cmd list
+    # (1.5.1) if '.out', call subprocess that executes .out file
+    # if '.sim', call subprocess w/ C code skeleton & execArgs
     def run(self):
 	try:
 	    extension = self.filePath[-4:]
@@ -218,7 +237,7 @@ class GUI(QMainWindow):
 	except AttributeError:
 	    self.console.insertPlainText("Double check inputs & save file first.\n")
 
-    # (1.5.2) Runs selected .c file or coreFunc.c
+    # (1.5.2) Runs .out file or coreFunc/coreFuncNoTrials (C code skeletons)
     def runC(self, cmd=0):
 	if cmd == 0:
 	    process = self.filePath
@@ -235,7 +254,8 @@ class GUI(QMainWindow):
 	    self.filterDataFiles(cmd)
 	self.switch()
 
-    # (1.5.3) Filters files with "." in them
+    # (1.5.3) Filters files with "." in them so only data files remain
+    # By convention, your simulation's data files MUST NOT include an extension
     def filterDataFiles(self, cmd=0):
 	try:
 	    self.files = os.listdir(self.dirPath)
@@ -251,10 +271,10 @@ class GUI(QMainWindow):
 			dataLength = len(data)
 			if dataLength not in fileLengths:
 			    fileLengths.append(dataLength)
+	    """
 	    if cmd != 0:
 		self.timeSteps = int(self.numSteps.text())
 		self.trialCount = int(self.numTrials.text())
-	    """
 	except NameError: pass
 
     # (1.5.4) Fills dataBoxes w/ files (size based)
@@ -282,6 +302,8 @@ class GUI(QMainWindow):
 	    data = f.readlines()
 	return len(data)
 
+    # (1.5.6) Window that pops up when running a .out file...used to specify
+    # details for graphing
     def promptDataTypes(self):
 	self.promptWindow = QWidget()
 	promptLayout = QGridLayout()
@@ -305,6 +327,7 @@ class GUI(QMainWindow):
 	self.promptWindow.setLayout(promptLayout)
 	self.promptWindow.show()
 
+    # (1.5.7) Support method for getting graphing details
     def setSimValues(self):
 	self.trialCount = int(self.trialField.text())
 	self.timeSteps = int(self.timeStepField.text())
@@ -596,7 +619,7 @@ class GUI(QMainWindow):
 		self.availableFuncs[x].addItems(funcs)
 		self.availableFuncs[x].activated.connect(self.pairComboBoxes(x))
 	#########
-		self.selectedFuncs[0].addItem(self.availableFuncs[0].currentText())
+	####### self.selectedFuncs[0].addItem(self.availableFuncs[0].currentText()) #un-comment this line for testing code faster
 	#########
 		self.clearFuncs[x].pressed.connect(self.pairClearButton(x))
 		self.loopSettings.addWidget(self.availableFuncs[x],x+7,0)
@@ -773,6 +796,8 @@ class GUI(QMainWindow):
   ### (3) Console output & cyclable Matplotlib plots ###
   ###						     ###
 
+    # This features is barely implemented, until the project is nearly
+    # finished, it's pointless to finish it
     def displayInit(self):
 	self.display = QStackedWidget()
 	self.console = QTextEdit()
